@@ -2,27 +2,58 @@
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 8.2.0.
 
-## Development server
+## Install pdfMake
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+``` node
+npm install pdfmake  --save
+```
 
-## Code scaffolding
+## Import pdfMake and pdfFonts
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+``` ts
+import * as pdfMake from 'pdfmake/build/pdfmake';
+import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 
-## Build
+const pdf = pdfMake;
+pdf.vfs = pdfFonts.pdfMake.vfs;
+```
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+## Add Thai fonts
 
-## Running unit tests
+1. go to '(project folder)/node_modules/pdfmake/'
+2. create 'examples/fonts' folder
+3. copy Roboto and Thai fonts ('src/assets/fonts')
+4. open '(project folder)/node_modules/pdfmake/' in terminal, then run 'npm install'
+5. run 'gulp buildFonts'. (will see Thai font name in 'pdfmake/build/vfs_fonts.js')
+6. add fonts to pdfMake
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+``` ts
+pdf.fonts = {
+  THSarabunNew: {
+    normal: 'THSarabunNew.ttf',
+    bold: 'THSarabunNew-Bold.ttf',
+    italics: 'THSarabunNew-Italic.ttf',
+    bolditalics: 'THSarabunNew-BoldItalic.ttf'
+  },
+  Roboto: {
+    normal: 'Roboto-Regular.ttf',
+    bold: 'Roboto-Medium.ttf',
+    italics: 'Roboto-Italic.ttf',
+    bolditalics: 'Roboto-MediumItalic.ttf'
+  }
+};
+```
 
-## Running end-to-end tests
+## Fixed bugs
 
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
+Declare enum does not create at run time.
+<https://lukasbehal.com/2017-05-22-enums-in-declaration-files/>
 
-## Further help
+So, fixed @types/pdfmake/index.d.ts with const enum
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
-# pdf-export
+- enum PageSize --> const enum PageSize
+- enum PageOrientation --> const enum PageOrientation
+
+## Reference
+
+- <https://www.chaichon.com/react/%E0%B8%AA%E0%B8%A3%E0%B9%89%E0%B8%B2%E0%B8%87%E0%B9%84%E0%B8%9F%E0%B8%A5%E0%B9%8C-pdf-%E0%B8%94%E0%B9%89%E0%B8%A7%E0%B8%A2-react-pdfmake-%E0%B8%A0%E0%B8%B2%E0%B8%A9%E0%B8%B2%E0%B9%84%E0%B8%97/>
