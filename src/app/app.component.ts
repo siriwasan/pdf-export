@@ -24,6 +24,12 @@ pdf.fonts = {
     bold: 'fontello.ttf',
     italics: 'fontello.ttf',
     bolditalics: 'fontello.ttf'
+  },
+  FontAwesome: {
+    normal: 'fa-regular-400.ttf',
+    bold: 'fa-solid-900.ttf',
+    italics: 'fa-regular-400.ttf',
+    bolditalics: 'fa-regular-400.ttf'
   }
 };
 
@@ -37,7 +43,7 @@ export class AppComponent {
 
   constructor() {}
 
-  exportPDF() {
+  async exportPDF1() {
     const docDefinition: pdfMake.TDocumentDefinitions = {
       content: [
         { text: 'สวัสดีประเทศไทย reat pdf demo ', style: 'thai' },
@@ -47,10 +53,17 @@ export class AppComponent {
         { text: [{ text: '', style: 'icon' }, ' icon-check-empty'] },
         { text: [{ text: '', style: 'icon' }, ' icon-circle-empty'] },
         { text: [{ text: '', style: 'icon' }, ' icon-dot-circled'] },
+        { text: [{ text: '', style: 'symbol' }, ' fa-check-square'] },
+        { text: [{ text: '', style: 'symbol' }, ' fa-square'] },
+        { text: [{ text: '', style: 'symbol' }, ' fa-dot-circle'] },
+        { text: [{ text: '', style: 'symbol' }, ' fa-circle'] },
+        { text: [{ text: '', style: 'symbol', bold: true }, ' fa-arrow-right'] },
+        { image: await this.imageToBase64('assets/img/googlelogo.png') },
         {
           text: 'This is a header, using header style',
           style: 'header'
         },
+        // tslint:disable: max-line-length
         'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Confectum ponit legam, perferendis nomine miserum, animi. Moveat nesciunt triari naturam.\n\n',
         {
           text: 'Subheader 1 - using subheader style',
@@ -70,10 +83,18 @@ export class AppComponent {
             'It is possible to apply multiple styles, by passing an array. This paragraph uses two styles: quote and small. When multiple styles are provided, they are evaluated in the specified order which is important in case they define the same properties',
           style: ['quote', 'small']
         }
+        // tslint:enable: max-line-length
       ],
       styles: {
         icon: {
           font: 'Fontello'
+        },
+        symbol: {
+          font: 'FontAwesome'
+        },
+        symbol2: {
+          font: 'FontAwesome',
+          bold: true
         },
         thai: {
           font: 'THSarabunNew',
@@ -101,5 +122,72 @@ export class AppComponent {
       pageSize: pdfMake.PageSize.A4
     };
     pdfMake.createPdf(docDefinition).open();
+  }
+
+  async exportPDF2() {
+    const docDefinition: pdfMake.TDocumentDefinitions = {
+      // footer: (currentPage, pageCount) => {
+      //   return currentPage.toString() + ' of ' + pageCount;
+      // },
+      // header: (currentPage, pageCount, pageSize) => {
+      //   // you can apply any logic and return any valid pdfmake element
+
+      //   return [
+      //     { text: 'simple text', alignment: currentPage % 2 ? 'left' : 'right' },
+      //     { canvas: [{ type: 'rect', x: 170, y: 32, w: pageSize.width - 170, h: 40 }] }
+      //   ];
+      // },
+      // background: (currentPage, pageSize) => {
+      //   return `page ${currentPage} with size ${pageSize}`;
+      // },
+      content: [
+        {
+          table: {
+            widths: ['*'],
+            body: [[ { text: 'Data Collection Form', fontSize: 20, alignment: 'center' }], ['One value goes here']]
+          }
+        },
+        {
+          image: await this.imageToBase64('assets/img/googlelogo.png')
+        }
+      ],
+      styles: {
+        icon: {
+          font: 'Fontello'
+        },
+        symbol: {
+          font: 'FontAwesome'
+        },
+        thai: {
+          font: 'THSarabunNew',
+          fontSize: 15
+        }
+      }
+    };
+    pdfMake.createPdf(docDefinition).open();
+  }
+
+  private imageToBase64(url: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+
+      img.crossOrigin = 'Anonymous';
+
+      img.onload = () => {
+        const canvas = document.createElement('canvas') as HTMLCanvasElement;
+        const context = canvas.getContext('2d') as CanvasDrawImage;
+
+        canvas.width = img.width;
+        canvas.height = img.height;
+
+        context.drawImage(img, 0, 0);
+
+        resolve(canvas.toDataURL('image/png'));
+      };
+
+      img.onerror = reject;
+
+      img.src = url;
+    });
   }
 }
