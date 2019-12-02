@@ -3,6 +3,8 @@ import { Component } from '@angular/core';
 import * as pdfMake from 'pdfmake/build/pdfmake';
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 
+import { report } from './content';
+
 const pdf = pdfMake;
 pdf.vfs = pdfFonts.pdfMake.vfs;
 
@@ -18,6 +20,18 @@ pdf.fonts = {
     bold: 'Roboto-Medium.ttf',
     italics: 'Roboto-Italic.ttf',
     bolditalics: 'Roboto-MediumItalic.ttf'
+  },
+  OpenSans: {
+    normal: 'OpenSans-Light.ttf',
+    bold: 'OpenSans-Bold.ttf',
+    italics: 'OpenSans-Italic.ttf',
+    bolditalics: 'OpenSans-BoldItalic.ttf'
+  },
+  Calibri: {
+    normal: 'calibri.ttf',
+    bold: 'calibrib.ttf',
+    italics: 'calibrii.ttf',
+    bolditalics: 'calibril.ttf'
   },
   Fontello: {
     normal: 'fontello.ttf',
@@ -125,6 +139,8 @@ export class AppComponent {
   }
 
   async exportPDF2() {
+    const data = require('./data.json');
+    console.log(data);
     const docDefinition: pdfMake.TDocumentDefinitions = {
       // footer: (currentPage, pageCount) => {
       //   return currentPage.toString() + ' of ' + pageCount;
@@ -140,29 +156,9 @@ export class AppComponent {
       // background: (currentPage, pageSize) => {
       //   return `page ${currentPage} with size ${pageSize}`;
       // },
-      content: [
-        {
-          table: {
-            widths: ['*'],
-            body: [[ { text: 'Data Collection Form', fontSize: 20, alignment: 'center' }], ['One value goes here']]
-          }
-        },
-        {
-          image: await this.imageToBase64('assets/img/googlelogo.png')
-        }
-      ],
-      styles: {
-        icon: {
-          font: 'Fontello'
-        },
-        symbol: {
-          font: 'FontAwesome'
-        },
-        thai: {
-          font: 'THSarabunNew',
-          fontSize: 15
-        }
-      }
+      content: report.content,
+      styles: report.styles,
+      defaultStyle: report.defaultStyle
     };
     pdfMake.createPdf(docDefinition).open();
   }
