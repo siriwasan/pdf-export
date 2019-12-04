@@ -3,7 +3,9 @@ import { Component } from '@angular/core';
 import * as pdfMake from 'pdfmake/build/pdfmake';
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 
-import { report } from './content';
+// import { report } from './content';
+import * as pdfReport from './pdf-report';
+import { CathPciReport } from './cath-pci.report';
 
 const pdf = pdfMake;
 pdf.vfs = pdfFonts.pdfMake.vfs;
@@ -70,9 +72,10 @@ export class AppComponent {
         { text: [{ text: '', style: 'symbol' }, ' fa-check-square'] },
         { text: [{ text: '', style: 'symbol' }, ' fa-square'] },
         { text: [{ text: '', style: 'symbol' }, ' fa-dot-circle'] },
+        { text: [{ text: '', style: 'symbol' }, ' fa-check-circle'] },
         { text: [{ text: '', style: 'symbol' }, ' fa-circle'] },
         { text: [{ text: '', style: 'symbol', bold: true }, ' fa-arrow-right'] },
-        { image: await this.imageToBase64('assets/img/googlelogo.png') },
+        { image: await pdfReport.imageToBase64('assets/img/googlelogo.png') },
         {
           text: 'This is a header, using header style',
           style: 'header'
@@ -138,52 +141,11 @@ export class AppComponent {
     pdfMake.createPdf(docDefinition).open();
   }
 
-  async exportPDF2() {
+  exportPDF2() {
     const data = require('./data.json');
-    console.log(data);
-    const docDefinition: pdfMake.TDocumentDefinitions = {
-      // footer: (currentPage, pageCount) => {
-      //   return currentPage.toString() + ' of ' + pageCount;
-      // },
-      // header: (currentPage, pageCount, pageSize) => {
-      //   // you can apply any logic and return any valid pdfmake element
+    console.log(data[0]);
 
-      //   return [
-      //     { text: 'simple text', alignment: currentPage % 2 ? 'left' : 'right' },
-      //     { canvas: [{ type: 'rect', x: 170, y: 32, w: pageSize.width - 170, h: 40 }] }
-      //   ];
-      // },
-      // background: (currentPage, pageSize) => {
-      //   return `page ${currentPage} with size ${pageSize}`;
-      // },
-      content: report.content,
-      styles: report.styles,
-      defaultStyle: report.defaultStyle
-    };
-    pdfMake.createPdf(docDefinition).open();
-  }
-
-  private imageToBase64(url: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-
-      img.crossOrigin = 'Anonymous';
-
-      img.onload = () => {
-        const canvas = document.createElement('canvas') as HTMLCanvasElement;
-        const context = canvas.getContext('2d') as CanvasDrawImage;
-
-        canvas.width = img.width;
-        canvas.height = img.height;
-
-        context.drawImage(img, 0, 0);
-
-        resolve(canvas.toDataURL('image/png'));
-      };
-
-      img.onerror = reject;
-
-      img.src = url;
-    });
+    const report = new CathPciReport(data[0]);
+    pdfMake.createPdf(report.docDefinition).open();
   }
 }

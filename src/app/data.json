@@ -28,22 +28,22 @@
       "modifiedBy": "00027"
     },
     "sectionA": {
-      "AN": "U2FsdGVkX19PAS9faikCYV708KimepEh9RMRYdgb0BI=",
+      "AN": "I190002320",
       "Age": 67,
-      "DOB": "U2FsdGVkX1/FXcgWvESC9PNUXm68X6deCq4Mog+tvzZ7EYTvendGIWIu74l1d2i0",
-      "FirstName": "U2FsdGVkX183u8tgWi88auSCC4IApPBVZOnQXK0wQEk=",
-      "HN": "U2FsdGVkX1+1uAVMbS3JdsKDz8GHTTl+neX80ddso3g=",
+      "DOB": "1980-07-01T08:20:00.000+07:00",
+      "FirstName": "ศิริวสันต์",
+      "HN": "0123456789",
       "HispEthnicityType": null,
       "HispOrig": "No",
-      "LastName": "U2FsdGVkX1+pqAM9nhCl7jkdYOZGqGU0D28ufKmKP74=",
-      "MidName": "U2FsdGVkX19qpheRRBPxhAstdG6E8M6Z1UVqckynxJ0=",
+      "LastName": "อกนิษฐาภิชาติ",
+      "MidName": "",
       "PatNation": "British",
       "PermAddr": "Yes",
       "Race": "White",
       "RaceAsian": null,
-      "SSN": "U2FsdGVkX1+qGoKpphxLQJZCH8yIMYg393hPclHkF3E=",
+      "SSN": "5234400079235",
       "Sex": "Male",
-      "ZipCode": "U2FsdGVkX19pMuSLx8oJNOz5ZYizcO+oF9z4Yd4xNdM=",
+      "ZipCode": "11000",
       "registryId": "PCI-BHT-19004"
     },
     "sectionB": {
@@ -52,7 +52,11 @@
       "AttProvider": "00071",
       "HospName": "BHT",
       "PayorPrim": "Private Health Insurance",
-      "PayorSecond": "None"
+      "PayorSecond": "None",
+      "AdmType": "Transfer",
+      "TransferHospType": "BDMS Network",
+      "BDMSNetwork": "BPH",
+      "NonBDMS": null
     },
     "sectionC": {
       "CAOutHospital": "No",
@@ -78,7 +82,7 @@
       "PriorPAD": "No",
       "PriorPCI": "No",
       "SmokeAmount": null,
-      "TobaccoType": null,
+      "TobaccoType": ["Cigars"],
       "TobaccoUse": "Never",
       "Weight": 80
     },
@@ -161,8 +165,8 @@
       "PostProcTnILab": "Not Drawn",
       "PostProcTnT": null,
       "PostProcTnTLab": "Not Drawn",
-      "PreProcCreat": null,
-      "PreProcCreatLab": "Not Drawn",
+      "PreProcCreat": 1.14,
+      "PreProcCreatLab": "Drawn",
       "PreProcTnI": null,
       "PreProcTnILab": "Not Drawn",
       "PreProcTnT": null,
