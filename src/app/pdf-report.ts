@@ -28,6 +28,11 @@ export const styles: pdfMake.Style = {
   },
   section: {
     bold: true,
+    fillColor: '#CBEEF3',
+    lineHeight: 1,
+    margin: [0, 1, 0, 0]
+  },
+  subSection: {
     fillColor: '#dddddd',
     lineHeight: 1,
     margin: [0, 1, 0, 0]
@@ -276,6 +281,10 @@ export function prop(txt: any, prp: pdfMake.Content) {
 
 export function section(title: string): pdfMake.Content {
   return { text: title, style: 'section' };
+}
+
+export function subSection(title: string): pdfMake.Content {
+  return { text: title, style: 'subSection' };
 }
 
 export function rightArrow(): pdfMake.Content {

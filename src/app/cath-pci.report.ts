@@ -30,9 +30,11 @@ export class CathPciReport {
             // ...this.sectionC(),
             // // page 2
             // ...this.sectionD(),
-            // page 3
-            ...this.sectionE(),
-            ...this.sectionF()
+            // // page 3
+            // ...this.sectionE(),
+            // ...this.sectionF(),
+            // page 4
+            ...this.sectionG()
           ]
         }
       }
@@ -583,15 +585,7 @@ export class CathPciReport {
           )
         )
       ],
-      [
-        pdf.blockStyle(
-          { style: 'section' },
-          {
-            text: '(DIAGNOSTIC TEST)',
-            bold: false
-          }
-        )
-      ],
+      [pdf.subSection('(DIAGNOSTIC TEST)')],
       [
         pdf.stack(
           pdf.emptyLine(),
@@ -862,15 +856,7 @@ export class CathPciReport {
           )
         )
       ],
-      [
-        pdf.blockStyle(
-          { style: 'section' },
-          {
-            text: 'PRE-PROCEDURE MEDICATIONS',
-            bold: false
-          }
-        )
-      ],
+      [pdf.subSection('PRE-PROCEDURE MEDICATIONS')],
       [
         pdf.stack(
           pdf.emptyLine(),
@@ -1226,15 +1212,7 @@ export class CathPciReport {
           )
         )
       ],
-      [
-        pdf.blockStyle(
-          { style: 'section' },
-          {
-            text: 'RADIATION EXPOSURE AND CONTRAST',
-            bold: false
-          }
-        )
-      ],
+      [pdf.subSection('RADIATION EXPOSURE AND CONTRAST')],
       [
         pdf.stack(
           pdf.emptyLine(),
@@ -1267,10 +1245,13 @@ export class CathPciReport {
     ];
   }
   private sectionF(): pdfMake.Content[][] {
+    // tslint:disable: variable-name
     const col1_1 = 100;
     const col1_2 = 170;
     const col1_3 = 100;
     const col1_4 = '*';
+    // tslint:enable: variable-name
+
     return [
       [pdf.blockStyle(pdf.section('F. LABS'))],
       [
@@ -1373,6 +1354,416 @@ export class CathPciReport {
               pdf.input(this.data.sectionF.LipidsHDL),
               ' mg/dL'
             )
+          )
+        )
+      ]
+    ];
+  }
+
+  private sectionG(): pdfMake.Content[][] {
+    return [
+      [
+        pdf.blockStyle(
+          // { style: 'section', pageBreak: 'before' },
+          { style: 'section' },
+          pdf.section('G. CATH LAB VISIT'),
+          {
+            text: ' (Complete for Each Cath Lab Visit)',
+            bold: false
+          }
+        )
+      ],
+      [
+        pdf.stack(
+          pdf.emptyLine(),
+          pdf.block(
+            pdf.field('Indication(s) for Cath Lab Visit', { annotation: '7400' }),
+            ' (Select all that apply)'
+          ),
+          pdf.columns(
+            { text: '', width: 9 },
+            pdf.stackStyle(
+              { width: 210 },
+              pdf.check('ACS <= 24 hrs', this.data.sectionG.CathLabVisitIndication),
+              pdf.check('ACS > 24 hrs', this.data.sectionG.CathLabVisitIndication),
+              pdf.check('New Onset Angina <= 2 months', this.data.sectionG.CathLabVisitIndication),
+              pdf.check('Worsening Angina', this.data.sectionG.CathLabVisitIndication),
+              pdf.check('Resuscitated Cardiac Arrest', this.data.sectionG.CathLabVisitIndication),
+              pdf.block(
+                pdf.check('Re-CathLab Visit', this.data.sectionG.CathLabVisitIndication),
+                ': CathPCI No.',
+                pdf.input(this.data.sectionG.PreviousCathLabVisit)
+              )
+            ),
+            pdf.stack(
+              pdf.check('Stable Known CAD', this.data.sectionG.CathLabVisitIndication),
+              pdf.check('Suspected CAD', this.data.sectionG.CathLabVisitIndication),
+              pdf.check('Valvular Disease', this.data.sectionG.CathLabVisitIndication),
+              pdf.check('Pericardial Disease', this.data.sectionG.CathLabVisitIndication),
+              pdf.check('Cardiac Arrhythmia', this.data.sectionG.CathLabVisitIndication),
+              pdf.check('Cardiomyopathy', this.data.sectionG.CathLabVisitIndication)
+            ),
+            pdf.stackStyle(
+              { width: 'auto' },
+              pdf.check('LV Dysfunction', this.data.sectionG.CathLabVisitIndication),
+              pdf.check('Syncope', this.data.sectionG.CathLabVisitIndication),
+              pdf.check('Post Cardiac Transplant', this.data.sectionG.CathLabVisitIndication),
+              pdf.check('Pre-operative Evaluation', this.data.sectionG.CathLabVisitIndication),
+              pdf.check(
+                'Evaluation for Exercise Clearance',
+                this.data.sectionG.CathLabVisitIndication
+              ),
+              pdf.check('Other', this.data.sectionG.CathLabVisitIndication)
+            )
+          ),
+          pdf.line(),
+          pdf.emptyLine(),
+          pdf.block(
+            pdf.field('Chest Pain Symptom Assessment', { annotation: '7405' }),
+            pdf.tab(),
+            pdf.radio('Typical Angina', this.data.sectionG.CPSxAssess),
+            pdf.tab(),
+            pdf.radio('Atypical Angina', this.data.sectionG.CPSxAssess),
+            pdf.tab(),
+            pdf.radio('Non-anginal Chest Pain', this.data.sectionG.CPSxAssess),
+            pdf.tab(),
+            pdf.radio('Asymptomatic', this.data.sectionG.CPSxAssess)
+          ),
+          pdf.line(),
+          pdf.emptyLine(),
+          pdf.block(
+            pdf.field('Cardiovascular Instability', { annotation: '7410' }),
+            pdf.tab(),
+            pdf.radio('No', this.data.sectionG.CVInstability),
+            pdf.tab(),
+            pdf.radio('Yes', this.data.sectionG.CVInstability)
+          ),
+          pdf.block(
+            pdf.tab(),
+            pdf.arrowIf(),
+            ' Yes, ',
+            pdf.field('Cardiovascular Instability Type', { annotation: '7415' }),
+            '(Select all that apply)'
+          ),
+          pdf.columns(
+            { text: '', width: 26 },
+            pdf.stack(
+              pdf.check(
+                'Persistent Ischemic Symptoms (chest pain, STE)',
+                this.data.sectionG.CVInstabilityType
+              ),
+              pdf.check(
+                'Hemodynamic Instability (not cardiogenic shock)',
+                this.data.sectionG.CVInstabilityType
+              ),
+              pdf.check('Ventricular Arrhythmias', this.data.sectionG.CVInstabilityType)
+            ),
+            pdf.stack(
+              pdf.check('Cardiogenic Shock', this.data.sectionG.CVInstabilityType),
+              pdf.check('Acute Heart Failure Symptoms', this.data.sectionG.CVInstabilityType),
+              pdf.check('Refractory Cardiogenic Shock', this.data.sectionG.CVInstabilityType)
+            )
+          ),
+          pdf.line(),
+          pdf.emptyLine(),
+          pdf.block(
+            pdf.field('Ventricular Support', { annotation: '7420' }),
+            pdf.tab(),
+            pdf.radio('No', this.data.sectionG.VSupport),
+            pdf.tab(),
+            pdf.radio('Yes', this.data.sectionG.VSupport)
+          ),
+          pdf.block(
+            pdf.tab(),
+            pdf.arrowIf(),
+            ' Yes, ',
+            pdf.field('Pharmacologic Vasopressor Support', { annotation: '7421' }),
+            pdf.tab(),
+            pdf.radio('No', this.data.sectionG.PharmVasoSupp),
+            pdf.tab(),
+            pdf.radio('Yes', this.data.sectionG.PharmVasoSupp)
+          ),
+          pdf.block(
+            pdf.tab(),
+            pdf.arrowIf(),
+            ' Yes, ',
+            pdf.field('Mechanical Ventricular Support', { annotation: '7422' }),
+            pdf.tab(),
+            pdf.radio('No', this.data.sectionG.MechVentSupp),
+            pdf.tab(),
+            pdf.radio('Yes', this.data.sectionG.MechVentSupp)
+          ),
+          pdf.block(
+            pdf.tab(),
+            pdf.arrowIf(),
+            ' Yes, ',
+            pdf.field('Device', { annotation: '7423' })
+          ),
+          pdf.columns(
+            { text: '', width: 26 },
+            pdf.stack(
+              pdf.check('Intra-aortic balloon pump (IABP)', this.data.sectionG.MVSupportDevice),
+              pdf.check(
+                'Extracorporeal membrane oxygenation (ECMO)',
+                this.data.sectionG.MVSupportDevice
+              ),
+              pdf.check('Cardiopulmonary Support (CPS)', this.data.sectionG.MVSupportDevice),
+              pdf.check('Impella: Left Ventricular Support', this.data.sectionG.MVSupportDevice),
+              pdf.check('Impella: Right Ventricular Support', this.data.sectionG.MVSupportDevice)
+            ),
+            pdf.stack(
+              pdf.check(
+                'Left ventricular assist device (LVAD)',
+                this.data.sectionG.MVSupportDevice
+              ),
+              pdf.check(
+                'Right Ventricular Assist Device (RVAD)',
+                this.data.sectionG.MVSupportDevice
+              ),
+              pdf.check('Percutaneous Heart Pump (PHP)', this.data.sectionG.MVSupportDevice),
+              pdf.check('TandemHeart', this.data.sectionG.MVSupportDevice)
+            )
+          ),
+          pdf.block(
+            pdf.tab(),
+            pdf.arrowIf(),
+            ' Yes, ',
+            pdf.field('Timing', { annotation: '7424' })
+          ),
+          pdf.columns(
+            { text: '', width: 26 },
+            pdf.stack(
+              pdf.check('In place at start of procedure', this.data.sectionG.MVSupportTiming),
+              pdf.check(
+                'Inserted during procedure and prior to intervention',
+                this.data.sectionG.MVSupportTiming
+              ),
+              pdf.check('Inserted after intervention has begun', this.data.sectionG.MVSupportTiming)
+            )
+          )
+        )
+      ],
+      [
+        pdf.blockStyle({ style: 'subSection' }, pdf.tab(), pdf.arrowIf(), {
+          text: ` Indication(s) for Cath Lab Visit = 'Valvular Disease'`
+        })
+      ],
+      [
+        pdf.stack(
+          pdf.emptyLine(),
+          pdf.block(pdf.tab(), { text: 'Valvular Disease Stenosis Type⁷⁴⁵⁰', bold: true }),
+          pdf.columns(
+            { text: '', width: 20 },
+            pdf.field('Aortic Stenosis', { width: 100 }),
+            pdf.block(
+              pdf.radio('No', this.data.sectionG.ASSeverity),
+              pdf.tab(),
+              pdf.radio('Trivial', this.data.sectionG.ASSeverity),
+              pdf.tab(),
+              pdf.radio('Mild', this.data.sectionG.ASSeverity),
+              pdf.tab(),
+              pdf.radio('Moderate', this.data.sectionG.ASSeverity),
+              pdf.tab(),
+              pdf.radio('Severe', this.data.sectionG.ASSeverity),
+              pdf.tab(),
+              pdf.radio('Unknown', this.data.sectionG.ASSeverity)
+            )
+          ),
+          pdf.columns(
+            { text: '', width: 20 },
+            pdf.field('Mitral Stenosis', { width: 100 }),
+            pdf.block(
+              pdf.radio('No', this.data.sectionG.MSSeverity),
+              pdf.tab(),
+              pdf.radio('Trivial', this.data.sectionG.MSSeverity),
+              pdf.tab(),
+              pdf.radio('Mild', this.data.sectionG.MSSeverity),
+              pdf.tab(),
+              pdf.radio('Moderate', this.data.sectionG.MSSeverity),
+              pdf.tab(),
+              pdf.radio('Severe', this.data.sectionG.MSSeverity),
+              pdf.tab(),
+              pdf.radio('Unknown', this.data.sectionG.MSSeverity)
+            )
+          ),
+          pdf.columns(
+            { text: '', width: 20 },
+            pdf.field('Pulmonic Stenosis', { width: 100 }),
+            pdf.block(
+              pdf.radio('No', this.data.sectionG.PSSeverity),
+              pdf.tab(),
+              pdf.radio('Trivial', this.data.sectionG.PSSeverity),
+              pdf.tab(),
+              pdf.radio('Mild', this.data.sectionG.PSSeverity),
+              pdf.tab(),
+              pdf.radio('Moderate', this.data.sectionG.PSSeverity),
+              pdf.tab(),
+              pdf.radio('Severe', this.data.sectionG.PSSeverity),
+              pdf.tab(),
+              pdf.radio('Unknown', this.data.sectionG.PSSeverity)
+            )
+          ),
+          pdf.columns(
+            { text: '', width: 20 },
+            pdf.field('Tricuspid Stenosis', { width: 100 }),
+            pdf.block(
+              pdf.radio('No', this.data.sectionG.TSSeverity),
+              pdf.tab(),
+              pdf.radio('Trivial', this.data.sectionG.TSSeverity),
+              pdf.tab(),
+              pdf.radio('Mild', this.data.sectionG.TSSeverity),
+              pdf.tab(),
+              pdf.radio('Moderate', this.data.sectionG.TSSeverity),
+              pdf.tab(),
+              pdf.radio('Severe', this.data.sectionG.TSSeverity),
+              pdf.tab(),
+              pdf.radio('Unknown', this.data.sectionG.TSSeverity)
+            )
+          ),
+          pdf.line(),
+          pdf.emptyLine(),
+          pdf.block(pdf.tab(), { text: 'Valvular Disease Regurgitation Type⁷⁴⁵⁵', bold: true }),
+          pdf.columns(
+            { text: '', width: 20 },
+            pdf.field('Aortic Regurgitation', { width: 100 }),
+            pdf.block(
+              pdf.radio('No (0)', this.data.sectionG.ARSeverity),
+              pdf.space(2),
+              pdf.radio('Mild (1+)', this.data.sectionG.ARSeverity),
+              pdf.space(2),
+              pdf.radio('Moderate (2+)', this.data.sectionG.ARSeverity),
+              pdf.space(2),
+              pdf.radio('Moderately Severe (3+)', this.data.sectionG.ARSeverity),
+              pdf.space(2),
+              pdf.radio('Severe (4+)', this.data.sectionG.ARSeverity),
+              pdf.space(2),
+              pdf.radio('Unknown', this.data.sectionG.ARSeverity)
+            )
+          ),
+          pdf.columns(
+            { text: '', width: 20 },
+            pdf.field('Mitral Regurgitation', { width: 100 }),
+            pdf.block(
+              pdf.radio('No (0)', this.data.sectionG.MRSeverity),
+              pdf.space(2),
+              pdf.radio('Mild (1+)', this.data.sectionG.MRSeverity),
+              pdf.space(2),
+              pdf.radio('Moderate (2+)', this.data.sectionG.MRSeverity),
+              pdf.space(2),
+              pdf.radio('Moderately Severe (3+)', this.data.sectionG.MRSeverity),
+              pdf.space(2),
+              pdf.radio('Severe (4+)', this.data.sectionG.MRSeverity),
+              pdf.space(2),
+              pdf.radio('Unknown', this.data.sectionG.MRSeverity)
+            )
+          ),
+          pdf.columns(
+            { text: '', width: 20 },
+            pdf.field('Pulmonic Regurgitation', { width: 100 }),
+            pdf.block(
+              pdf.radio('No (0)', this.data.sectionG.PRSeverity),
+              pdf.space(2),
+              pdf.radio('Mild (1+)', this.data.sectionG.PRSeverity),
+              pdf.space(2),
+              pdf.radio('Moderate (2+)', this.data.sectionG.PRSeverity),
+              pdf.space(2),
+              pdf.radio('Moderately Severe (3+)', this.data.sectionG.PRSeverity),
+              pdf.space(2),
+              pdf.radio('Severe (4+)', this.data.sectionG.PRSeverity),
+              pdf.space(2),
+              pdf.radio('Unknown', this.data.sectionG.PRSeverity)
+            )
+          ),
+          pdf.columns(
+            { text: '', width: 20 },
+            pdf.field('Tricuspid Regurgitation', { width: 100 }),
+            pdf.block(
+              pdf.radio('No (0)', this.data.sectionG.TRSeverity),
+              pdf.space(2),
+              pdf.radio('Mild (1+)', this.data.sectionG.TRSeverity),
+              pdf.space(2),
+              pdf.radio('Moderate (2+)', this.data.sectionG.TRSeverity),
+              pdf.space(2),
+              pdf.radio('Moderately Severe (3+)', this.data.sectionG.TRSeverity),
+              pdf.space(2),
+              pdf.radio('Severe (4+)', this.data.sectionG.TRSeverity),
+              pdf.space(2),
+              pdf.radio('Unknown', this.data.sectionG.TRSeverity)
+            )
+          )
+        )
+      ],
+      [
+        pdf.blockStyle({ style: 'subSection' }, pdf.tab(), pdf.arrowIf(), {
+          text: ` Indication(s) for Cath Lab Visit = 'Pre-operative Evaluation'`
+        })
+      ],
+      [
+        pdf.stack(
+          pdf.emptyLine(),
+          pdf.block(
+            pdf.field('Evaluation for Surgery Type', { annotation: '7465' }),
+            pdf.tab(),
+            pdf.radio('Cardiac Surgery', this.data.sectionG.PreOPEval),
+            pdf.tab(),
+            pdf.radio('Non-Cardiac Surgery', this.data.sectionG.PreOPEval)
+          ),
+          pdf.block(
+            pdf.field('Functional Capacity', { annotation: '7466' }),
+            pdf.tab(),
+            pdf.radio('< 4 METS', this.data.sectionG.FuncCapacity),
+            pdf.tab(),
+            pdf.radio('>= 4 METS without Symptoms', this.data.sectionG.FuncCapacity),
+            pdf.tab(),
+            pdf.radio('>= 4 METS with Symptoms', this.data.sectionG.FuncCapacity),
+            pdf.tab(),
+            pdf.radio('Unknown', this.data.sectionG.FuncCapacity)
+          ),
+          pdf.block(
+            pdf.field('Surgical Risk', { annotation: '7468' }),
+            pdf.tab(),
+            pdf.radio('Low', this.data.sectionG.SurgRisk),
+            pdf.tab(),
+            pdf.radio('Intermediate', this.data.sectionG.SurgRisk),
+            pdf.tab(),
+            pdf.radio('High Risk: Vascular', this.data.sectionG.SurgRisk),
+            pdf.tab(),
+            pdf.radio('High Risk: Non-Vascular', this.data.sectionG.SurgRisk)
+          ),
+          pdf.block(
+            pdf.field('Solid Organ Transplant Surgery', { annotation: '7469' }),
+            pdf.tab(),
+            pdf.radio('No', this.data.sectionG.OrganTransplantSurg),
+            pdf.tab(),
+            pdf.radio('Yes', this.data.sectionG.OrganTransplantSurg)
+          ),
+          pdf.block(
+            pdf.tab(),
+            pdf.arrowIf(),
+            ' Yes, ',
+            pdf.field('Transplant Donor', { annotation: '7470' }),
+            pdf.tab(),
+            pdf.radio('No', this.data.sectionG.OrganTransplantSurg),
+            pdf.tab(),
+            pdf.radio('Yes', this.data.sectionG.OrganTransplantSurg)
+          ),
+          pdf.block(
+            pdf.tab(),
+            pdf.arrowIf(),
+            ' Yes, ',
+            pdf.field('Transplant Type', { annotation: '7471' }),
+            pdf.tab(),
+            pdf.check('Heart', this.data.sectionG.OrganTransplantType),
+            pdf.tab(),
+            pdf.check('Kidney', this.data.sectionG.OrganTransplantType),
+            pdf.tab(),
+            pdf.check('Liver', this.data.sectionG.OrganTransplantType),
+            pdf.tab(),
+            pdf.check('Lung', this.data.sectionG.OrganTransplantType),
+            pdf.tab(),
+            pdf.check('Pancreas', this.data.sectionG.OrganTransplantType),
+            pdf.tab(),
+            pdf.check('Other Organ', this.data.sectionG.OrganTransplantType)
           )
         )
       ]
