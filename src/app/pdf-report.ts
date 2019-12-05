@@ -1,12 +1,7 @@
 import * as moment from 'moment';
 import * as pdfMake from 'pdfmake/build/pdfmake';
 
-declare module 'pdfmake/build/pdfmake' {
-  export interface Content {
-    annotation?: string;
-  }
-}
-
+//#region Style
 export const styles: pdfMake.Style = {
   icon: {
     font: 'Fontello'
@@ -69,31 +64,95 @@ export const defaultStyle: pdfMake.Style = {
   lineHeight: 1.4,
   preserveLeadingSpaces: true
 };
+//#endregion
 
-export function imageToBase64(url: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-
-    img.crossOrigin = 'Anonymous';
-
-    img.onload = () => {
-      const canvas = document.createElement('canvas') as HTMLCanvasElement;
-      const context = canvas.getContext('2d') as CanvasDrawImage;
-
-      canvas.width = img.width;
-      canvas.height = img.height;
-
-      context.drawImage(img, 0, 0);
-
-      resolve(canvas.toDataURL('image/png'));
-    };
-
-    img.onerror = reject;
-
-    img.src = url;
-  });
+//#region Layout
+export function stack(...arg: any[]): pdfMake.Content {
+  const output = { stack: [] };
+  for (const iterator of arg) {
+    if (typeof iterator === 'string') {
+      output.stack.push({ text: iterator });
+    } else {
+      output.stack.push(iterator);
+    }
+  }
+  return output;
 }
 
+export function stackStyle(styl: pdfMake.Style, ...arg: any[]): pdfMake.Content {
+  return prop(stack(...arg), styl);
+}
+
+export function stackT(...arg: any[]): pdfMake.Content {
+  const output = stack(...arg);
+  output.style = 'tabelCell';
+  return output;
+}
+
+export function columns(...arg: any[]): pdfMake.Content {
+  const output = { columns: [] };
+  for (const iterator of arg) {
+    if (typeof iterator === 'string') {
+      output.columns.push({ text: iterator });
+    } else {
+      output.columns.push(iterator);
+    }
+  }
+  return output;
+}
+
+export function block(...arg: any[]): pdfMake.Content {
+  const output = { text: [] };
+  for (const iterator of arg) {
+    if (typeof iterator === 'string') {
+      output.text.push({ text: iterator });
+    } else {
+      output.text.push(iterator);
+    }
+  }
+  return output as pdfMake.Content;
+}
+
+export function blockT(...arg: any[]): pdfMake.Content {
+  const output = block(...arg);
+  output.style = 'tableCell';
+  return output;
+}
+
+export function blockStyle(styl: pdfMake.Style, ...arg: any[]): pdfMake.Content {
+  return prop(block(...arg), styl);
+}
+
+export function space(num = 1) {
+  return ' '.repeat(num);
+}
+
+export function tab(num = 1) {
+  return '\t'.repeat(num);
+}
+
+export function ln() {
+  return '\n';
+}
+
+export function emptyLine(): pdfMake.Content {
+  return { text: '', margin: [0, 3, 0, 0] };
+}
+
+export function line(): pdfMake.Content {
+  return {
+    canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.5, color: 'gray' }]
+  };
+}
+
+export function lineHalf(): pdfMake.Content {
+  return {
+    canvas: [{ type: 'line', x1: 0, y1: 0, x2: 243, y2: 0, lineWidth: 0.5, color: 'gray' }]
+  };
+}
+//#endregion
+
+//#region Pre-defined
 export function superscript(annotation: string) {
   const superscripts = {
     0: '\u{2070}',
@@ -144,6 +203,53 @@ export function subscript(annotation: string) {
   return { text: output, style: 'subscript' };
 }
 
+export function arrowIf(): pdfMake.Content {
+  return { text: '→ If', bold: true };
+}
+//#endregion
+
+//#region Utility
+export function prop(txt: any, prp: pdfMake.Content): pdfMake.Content {
+  Object.keys(prp).forEach(key => {
+    txt[key] = prp[key];
+  });
+  return txt;
+}
+
+export function imageToBase64(url: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+
+    img.crossOrigin = 'Anonymous';
+
+    img.onload = () => {
+      const canvas = document.createElement('canvas') as HTMLCanvasElement;
+      const context = canvas.getContext('2d') as CanvasDrawImage;
+
+      canvas.width = img.width;
+      canvas.height = img.height;
+
+      context.drawImage(img, 0, 0);
+
+      resolve(canvas.toDataURL('image/png'));
+    };
+
+    img.onerror = reject;
+
+    img.src = url;
+  });
+}
+//#endregion
+
+//#region Form
+export function section(title: string): pdfMake.Content {
+  return { text: title, style: 'section' };
+}
+
+export function subSection(title: string): pdfMake.Content {
+  return { text: title, style: 'subSection' };
+}
+
 export function field(label: string, styl?: pdfMake.Style): pdfMake.Content {
   const output = { text: [] };
   output.text.push({ text: label, style: 'field' });
@@ -155,7 +261,7 @@ export function field(label: string, styl?: pdfMake.Style): pdfMake.Content {
   if (styl) {
     prop(output, styl);
   }
-  return output as pdfMake.Content;
+  return output;
 }
 
 export function fieldT(label: string, styl?: pdfMake.Style): pdfMake.Content {
@@ -164,13 +270,49 @@ export function fieldT(label: string, styl?: pdfMake.Style): pdfMake.Content {
   return output;
 }
 
-export function input(label: string): pdfMake.Content {
-  return { text: label ? label : '_____________', bold: true, italics: true };
+export function input(label: string, styl?: pdfMake.Style): pdfMake.Content {
+  let blank = '_____________';
+  if (styl && styl.blank) {
+    blank = '_'.repeat(styl.blank);
+  }
+
+  const output = { text: label ? label : blank, bold: true, italics: true };
+  if (styl) {
+    prop(output, styl);
+  }
+  return output;
 }
 
-export function inputThai(label: string): pdfMake.Content {
+export function inputArray(label: string[], styl?: pdfMake.Style): pdfMake.Content {
+  let output = '';
+
+  label.forEach(s => {
+    output += s + ', ';
+  });
+  output = output.substring(0, output.length - 2);
+
+  return input(output, styl);
+}
+
+
+export function inputT(label: string, styl?: pdfMake.Style): pdfMake.Content {
+  const output = input(label, styl);
+  output.style = 'tableCell';
+  return output;
+}
+
+export function inputThai(label: string, styl?: pdfMake.Style): pdfMake.Content {
   // insert blank to adjust line postion
-  return { text: label ? label : '_____________', style: 'thai' };
+  let blank = '_____________';
+  if (styl && styl.blank) {
+    blank = '_'.repeat(styl.blank);
+  }
+
+  const output = { text: label ? label : blank, style: 'thai' };
+  if (styl) {
+    prop(output, styl);
+  }
+  return output;
 }
 
 export function radio(label: string, value: string, styl?: pdfMake.Style): pdfMake.Content {
@@ -179,7 +321,6 @@ export function radio(label: string, value: string, styl?: pdfMake.Style): pdfMa
       { text: label === value ? '' : '', style: 'symbol' },
       { text: ` ${label}`, style: 'choice' }
     ]
-    // width: 'auto'
   };
 
   if (styl) {
@@ -216,85 +357,6 @@ export function check(label: string, value: any[], styl?: pdfMake.Style): pdfMak
   return output;
 }
 
-export function block(...arg: any[]) {
-  const output = { text: [] };
-  for (const iterator of arg) {
-    if (typeof iterator === 'string') {
-      output.text.push({ text: iterator });
-    } else {
-      output.text.push(iterator);
-    }
-  }
-  return output as pdfMake.Content;
-}
-
-export function blockStyle(styl: pdfMake.Style, ...arg: any[]) {
-  return prop(block(...arg), styl);
-}
-
-export function columns(...arg: any[]) {
-  const output = { columns: [] };
-  for (const iterator of arg) {
-    if (typeof iterator === 'string') {
-      output.columns.push({ text: iterator });
-    } else {
-      output.columns.push(iterator);
-    }
-  }
-  return output;
-}
-
-export function stack(...arg: any[]) {
-  const output = { stack: [] };
-  for (const iterator of arg) {
-    if (typeof iterator === 'string') {
-      output.stack.push({ text: iterator });
-    } else {
-      output.stack.push(iterator);
-    }
-  }
-  return output;
-}
-
-export function stackStyle(styl: pdfMake.Style, ...arg: any[]) {
-  return prop(stack(...arg), styl);
-}
-
-export function space(num = 1) {
-  return ' '.repeat(num);
-}
-
-export function tab(num = 1) {
-  return '\t'.repeat(num);
-}
-
-export function ln() {
-  return '\n';
-}
-
-export function prop(txt: any, prp: pdfMake.Content) {
-  Object.keys(prp).forEach(key => {
-    txt[key] = prp[key];
-  });
-  return txt;
-}
-
-export function section(title: string): pdfMake.Content {
-  return { text: title, style: 'section' };
-}
-
-export function subSection(title: string): pdfMake.Content {
-  return { text: title, style: 'subSection' };
-}
-
-export function rightArrow(): pdfMake.Content {
-  return { text: [{ text: '', style: 'symbol', bold: true }] };
-}
-
-export function emptyLine(): pdfMake.Content {
-  return { text: '', margin: [0, 3, 0, 0] };
-}
-
 export function date(label: string, type = 'date'): pdfMake.Content {
   const d = moment(label);
   let output = '';
@@ -306,13 +368,4 @@ export function date(label: string, type = 'date'): pdfMake.Content {
   }
   return { text: output, bold: true, italics: true };
 }
-
-export function arrowIf(): pdfMake.Content {
-  return { text: '→ If', bold: true };
-}
-
-export function line(): pdfMake.Content {
-  return {
-    canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.5, color: 'gray' }]
-  };
-}
+//#endregion

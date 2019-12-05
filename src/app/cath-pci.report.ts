@@ -33,8 +33,14 @@ export class CathPciReport {
             // // page 3
             // ...this.sectionE(),
             // ...this.sectionF(),
-            // page 4
-            ...this.sectionG()
+            // // page 4
+            // ...this.sectionG(),
+            // // page 5
+            // ...this.sectionH(),
+            // // page 6-7
+            // ...this.sectionI(),
+            // page 8
+            ...this.sectionJ()
           ]
         }
       }
@@ -1244,6 +1250,7 @@ export class CathPciReport {
       ]
     ];
   }
+
   private sectionF(): pdfMake.Content[][] {
     // tslint:disable: variable-name
     const col1_1 = 100;
@@ -1364,8 +1371,8 @@ export class CathPciReport {
     return [
       [
         pdf.blockStyle(
-          // { style: 'section', pageBreak: 'before' },
-          { style: 'section' },
+          { style: 'section', pageBreak: 'before' },
+          // { style: 'section' },
           pdf.section('G. CATH LAB VISIT'),
           {
             text: ' (Complete for Each Cath Lab Visit)',
@@ -1551,7 +1558,7 @@ export class CathPciReport {
       [
         pdf.stack(
           pdf.emptyLine(),
-          pdf.block(pdf.tab(), { text: 'Valvular Disease Stenosis Type⁷⁴⁵⁰', bold: true }),
+          pdf.block(pdf.tab(), { text: 'Valvular Disease Stenosis Type', bold: true }, '⁷⁴⁵⁰'),
           pdf.columns(
             { text: '', width: 20 },
             pdf.field('Aortic Stenosis', { width: 100 }),
@@ -1622,7 +1629,7 @@ export class CathPciReport {
           ),
           pdf.line(),
           pdf.emptyLine(),
-          pdf.block(pdf.tab(), { text: 'Valvular Disease Regurgitation Type⁷⁴⁵⁵', bold: true }),
+          pdf.block(pdf.tab(), { text: 'Valvular Disease Regurgitation Type', bold: true }, '⁷⁴⁵⁵'),
           pdf.columns(
             { text: '', width: 20 },
             pdf.field('Aortic Regurgitation', { width: 100 }),
@@ -1766,6 +1773,1390 @@ export class CathPciReport {
             pdf.check('Other Organ', this.data.sectionG.OrganTransplantType)
           )
         )
+      ]
+    ];
+  }
+
+  private sectionH(): pdfMake.Content[][] {
+    return [
+      [
+        pdf.blockStyle(
+          // { style: 'section', pageBreak: 'before' },
+          // { style: 'section' },
+          pdf.section('H. CORONARY ANATOMY')
+        )
+      ],
+      [
+        pdf.stack(
+          pdf.emptyLine(),
+          pdf.block(
+            pdf.field('Dominance', { annotation: '7500' }),
+            pdf.tab(),
+            pdf.radio('Left', this.data.sectionH.Dominance),
+            pdf.tab(),
+            pdf.radio('Right', this.data.sectionH.Dominance),
+            pdf.tab(),
+            pdf.radio('Co-dominant', this.data.sectionH.Dominance)
+          ),
+          pdf.line(),
+          pdf.emptyLine(),
+          pdf.block(
+            pdf.field('Native Vessel with Stenosis >= 50%', { annotation: '7505' }),
+            pdf.tab(),
+            pdf.radio('No', this.data.sectionH.NVStenosis),
+            pdf.tab(),
+            pdf.radio('Yes', this.data.sectionH.NVStenosis),
+            pdf.tab(4),
+            pdf.arrowIf(),
+            ' Yes, ',
+            pdf.field('Specify Segment(s)')
+          ),
+          {
+            table: {
+              // headerRows: 1,
+              widths: [95, '*'],
+              dontBreakRows: true,
+              body: [
+                [
+                  pdf.blockStyle(
+                    { lineHeight: 1, alignment: 'center' },
+                    { text: 'SEGMENT NUMBER', bold: true },
+                    '⁷⁵⁰⁷'
+                  ),
+                  { text: 'MEASUREMENT', style: 'tableHeader' }
+                ],
+                ...this.getNvAnatomy()
+              ]
+            }
+          },
+          pdf.emptyLine(),
+          pdf.line(),
+          pdf.emptyLine(),
+          pdf.block(
+            pdf.field('Graft Vessel with Stenosis >= 50%', { annotation: '7505' }),
+            pdf.tab(),
+            pdf.radio('No', this.data.sectionH.GraftStenosis),
+            pdf.tab(),
+            pdf.radio('Yes', this.data.sectionH.GraftStenosis),
+            pdf.tab(4),
+            pdf.arrowIf(),
+            ' Yes, ',
+            pdf.field('Specify Segment(s)')
+          ),
+          {
+            table: {
+              // headerRows: 1,
+              widths: [95, '*'],
+              dontBreakRows: true,
+              body: [
+                [
+                  pdf.blockStyle(
+                    { lineHeight: 1, alignment: 'center' },
+                    { text: 'SEGMENT NUMBER', bold: true },
+                    '⁷⁵²⁷'
+                  ),
+                  { text: 'MEASUREMENT', style: 'tableHeader' }
+                ],
+                ...this.getGraftAnatomy()
+              ]
+            }
+          }
+        )
+      ]
+    ];
+  }
+
+  private getNvAnatomy() {
+    const output = [];
+    const nvLength = this.data.sectionH.NativeLesions.length;
+    const maxLength = nvLength < 5 ? 5 : nvLength;
+
+    for (let index = 0; index < maxLength; index++) {
+      let vessel = null;
+      if (index < nvLength) {
+        vessel = this.data.sectionH.NativeLesions[index];
+      }
+      output.push(this.nativeVesselStenosis(vessel));
+    }
+    return output;
+  }
+
+  private nativeVesselStenosis(data: any) {
+    return [
+      pdf.stack(
+        pdf.input(data ? data.NVSegmentID : null, {
+          alignment: 'center',
+          margin: [0, 25, 0, 0]
+        })
+      ),
+      pdf.stack(
+        pdf.emptyLine(),
+        pdf.block(
+          pdf.field('Native Stenosis', { annotation: '7508' }),
+          pdf.input(data ? data.NVCoroVesselStenosis : null, { blank: 5 }),
+          ' %'
+        ),
+        pdf.block(
+          pdf.field('Adjunctive Measurements Obtained', { annotation: '7511' }),
+          pdf.tab(),
+          pdf.radio('No', data ? data.NVAdjuncMeasObtained : null),
+          pdf.tab(),
+          pdf.radio('Yes', data ? data.NVAdjuncMeasObtained : null)
+        ),
+        pdf.columns(
+          { text: '', width: 9 },
+          pdf.blockStyle(
+            { width: 130 },
+            pdf.arrowIf(),
+            ' Yes, ',
+            pdf.field('FFR Ratio', { annotation: '7512' }),
+            pdf.input(data ? data.NV_FFR : null, { blank: 6 })
+          ),
+          pdf.blockStyle(
+            { width: 75 },
+            pdf.radio('IC', data ? data.NV_FFR_Type : null),
+            pdf.tab(),
+            pdf.radio('IV', data ? data.NV_FFR_Type : null)
+          ),
+          pdf.block(
+            pdf.arrowIf(),
+            ' Yes, ',
+            pdf.field('IVUS MLA', { annotation: '7514' }),
+            pdf.input(data ? data.NV_IVUS : null, { blank: 6 }),
+            ' mm²'
+          )
+        ),
+        pdf.columns(
+          { text: '', width: 9 },
+          pdf.blockStyle(
+            { width: 205 },
+            pdf.arrowIf(),
+            ' Yes, ',
+            pdf.field('iFR Ratio', { annotation: '7513' }),
+            pdf.input(data ? data.NV_IFR : null, { blank: 6 })
+          ),
+          pdf.block(
+            pdf.arrowIf(),
+            ' Yes, ',
+            pdf.field('OCT MLA', { annotation: '7515' }),
+            pdf.input(data ? data.NV_OCT : null, { blank: 6 }),
+            ' mm²'
+          )
+        )
+      )
+    ];
+  }
+
+  private getGraftAnatomy() {
+    const output = [];
+    const nvLength = this.data.sectionH.GraftLesions.length;
+    const maxLength = nvLength < 4 ? 4 : nvLength;
+
+    for (let index = 0; index < maxLength; index++) {
+      let vessel = null;
+      if (index < nvLength) {
+        vessel = this.data.sectionH.GraftLesions[index];
+      }
+      output.push(this.graftVesselStenosis(vessel));
+    }
+    return output;
+  }
+
+  private graftVesselStenosis(data: any) {
+    return [
+      pdf.stack(
+        pdf.input(data ? data.GraftSegmentID : null, {
+          alignment: 'center',
+          margin: [0, 25, 0, 0]
+        })
+      ),
+      pdf.stack(
+        pdf.emptyLine(),
+        pdf.block(
+          pdf.field('Graft Stenosis', { annotation: '7508' }),
+          pdf.input(data ? data.GraftCoroVesselStenosis : null, { blank: 5 }),
+          ' %',
+          pdf.tab(),
+          pdf.field('Graft Vessel', { annotation: '7529' }),
+          pdf.radio('LIMA', data ? data.CABGGraftVessel : null),
+          pdf.space(2),
+          pdf.radio('RIMA', data ? data.CABGGraftVessel : null),
+          pdf.space(2),
+          pdf.radio('SVG', data ? data.CABGGraftVessel : null),
+          pdf.space(2),
+          pdf.radio('Radial', data ? data.CABGGraftVessel : null),
+          pdf.space(2),
+          pdf.radio('Unknown', data ? data.CABGGraftVessel : null)
+        ),
+        pdf.block(
+          pdf.field('Adjunctive Measurements Obtained', { annotation: '7511' }),
+          pdf.tab(),
+          pdf.radio('No', data ? data.GraftAdjuncMeasObtained : null),
+          pdf.tab(),
+          pdf.radio('Yes', data ? data.GraftAdjuncMeasObtained : null)
+        ),
+        pdf.columns(
+          { text: '', width: 9 },
+          pdf.blockStyle(
+            { width: 130 },
+            pdf.arrowIf(),
+            ' Yes, ',
+            pdf.field('FFR Ratio', { annotation: '7512' }),
+            pdf.input(data ? data.Graft_FFR : null, { blank: 6 })
+          ),
+          pdf.blockStyle(
+            { width: 75 },
+            pdf.radio('IC', data ? data.Graft_FFR_Type : null),
+            pdf.tab(),
+            pdf.radio('IV', data ? data.Graft_FFR_Type : null)
+          ),
+          pdf.block(
+            pdf.arrowIf(),
+            ' Yes, ',
+            pdf.field('IVUS MLA', { annotation: '7514' }),
+            pdf.input(data ? data.Graft_IVUS : null, { blank: 6 }),
+            ' mm²'
+          )
+        ),
+        pdf.columns(
+          { text: '', width: 9 },
+          pdf.blockStyle(
+            { width: 205 },
+            pdf.arrowIf(),
+            ' Yes, ',
+            pdf.field('iFR Ratio', { annotation: '7513' }),
+            pdf.input(data ? data.Graft_IFR : null, { blank: 6 })
+          ),
+          pdf.block(
+            pdf.arrowIf(),
+            ' Yes, ',
+            pdf.field('OCT MLA', { annotation: '7515' }),
+            pdf.input(data ? data.Graft_OCT : null, { blank: 6 }),
+            ' mm²'
+          )
+        )
+      )
+    ];
+  }
+
+  private sectionI(): pdfMake.Content[][] {
+    return [
+      [
+        pdf.blockStyle(
+          { style: 'section', pageBreak: 'before' },
+          // { style: 'section' },
+          pdf.section('I. PCI PROCEDURE'),
+          {
+            text: ' (Complete for Each Cath Lab Visit in which a PCI was Attempted or Performed)',
+            bold: false
+          }
+        )
+      ],
+      [
+        pdf.stack(
+          pdf.emptyLine(),
+          pdf.block(
+            pdf.field('PCI Status', { annotation: '7600' }),
+            pdf.tab(),
+            pdf.radio('Elective', this.data.sectionI.PCIStatus),
+            pdf.tab(),
+            pdf.radio('Urgent', this.data.sectionI.PCIStatus),
+            pdf.tab(),
+            pdf.radio('Emergency', this.data.sectionI.PCIStatus),
+            pdf.tab(),
+            pdf.radio('Salvage', this.data.sectionI.PCIStatus)
+          ),
+          {
+            margin: [0, 0, 0, 5],
+            table: {
+              widths: [130, '*'],
+              body: [
+                [
+                  pdf.stackStyle(
+                    { fillColor: '#dddddd' },
+                    pdf.emptyLine(),
+                    pdf.block(
+                      { text: 'Cardiac Arrest Out of Healthcare Facility', bold: true },
+                      `⁴⁶³⁰ = 'Yes'`,
+                      { text: ' or', bold: true }
+                    ),
+                    pdf.block(
+                      { text: 'Cardiac Arrest at Transferring Healthcare Facility', bold: true },
+                      `⁴⁶³⁵ = 'Yes'`,
+                      { text: ' or', bold: true }
+                    ),
+                    pdf.block(
+                      { text: 'Cardiac Arrest at This Facility', bold: true },
+                      `⁷³⁴⁰ = 'Yes'`
+                    )
+                  ),
+                  pdf.stack(
+                    pdf.emptyLine(),
+                    pdf.block(
+                      pdf.field('Hypothermia Induced', { annotation: '7806' }),
+                      pdf.tab(),
+                      pdf.radio('No', this.data.sectionI.HypothermiaInduced),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionI.HypothermiaInduced)
+                    ),
+                    pdf.columns(
+                      pdf.stackStyle(
+                        { width: 160 },
+                        pdf.block(
+                          pdf.space(2),
+                          pdf.arrowIf(),
+                          ' Yes, ',
+                          pdf.field('Timing of Hypothermia', { annotation: '7807' })
+                        ),
+                        pdf.block(
+                          pdf.tab(12),
+                          pdf.radio('Post PCI', this.data.sectionI.HypothermiaInducedTiming)
+                        )
+                      ),
+                      pdf.stack(
+                        pdf.radio(
+                          'Initiated Pre-PCI, <= 6 hrs post cardiac arrest',
+                          this.data.sectionI.HypothermiaInducedTiming
+                        ),
+                        pdf.radio(
+                          'Initiated Pre-PCI, > 6 hrs post cardiac arrest',
+                          this.data.sectionI.HypothermiaInducedTiming
+                        )
+                      )
+                    ),
+                    pdf.block(
+                      pdf.field('Level of Consciousness', { annotation: '7810' }),
+                      '(at start of PCI s/p cardiac arrest)'
+                    ),
+                    pdf.columns(
+                      { text: '', width: 25 },
+                      pdf.stack(
+                        pdf.radio('(A) Alert', this.data.sectionI.LOCProc),
+                        pdf.radio('(V) Verbal', this.data.sectionI.LOCProc)
+                      ),
+                      pdf.stack(
+                        pdf.radio('(P) Pain', this.data.sectionI.LOCProc),
+                        pdf.radio('(U) Unresponsive', this.data.sectionI.LOCProc)
+                      ),
+                      pdf.radio('Unable to Assess', this.data.sectionI.LOCProc)
+                    )
+                  )
+                ]
+              ]
+            }
+          },
+          pdf.columns(
+            pdf.field('Indicated Procedure Risk', { width: 180 }),
+            pdf.stack(
+              pdf.radio(
+                'Simple Low Risk Indicated Procedure (SLIP)',
+                this.data.sectionI.PCIProcedureRisk
+              ),
+              pdf.radio(
+                'Complex High Risk Indicated Procedure (CHIP)',
+                this.data.sectionI.PCIProcedureRisk
+              ),
+              pdf.block(pdf.tab(2), pdf.check('Chronic Total Occlusion', this.data.sectionI.CHIP)),
+              pdf.block(pdf.tab(2), pdf.check('Bifurcation Lesion', this.data.sectionI.CHIP)),
+              pdf.block(
+                pdf.tab(2),
+                pdf.check('Poor LV function with Device support', this.data.sectionI.CHIP)
+              ),
+              pdf.block(pdf.tab(2), pdf.check('Left Main Disease ≥ 50%', this.data.sectionI.CHIP)),
+              pdf.block(pdf.tab(2), pdf.check('Severe Calcification', this.data.sectionI.CHIP))
+            )
+          ),
+          pdf.line(),
+          pdf.emptyLine(),
+          pdf.columns(
+            pdf.field('Decision for PCI with Surgical Consult', { annotation: '7815', width: 180 }),
+            pdf.block(
+              pdf.radio('No', this.data.sectionI.PCIDecision),
+              pdf.tab(),
+              pdf.radio('Yes', this.data.sectionI.PCIDecision)
+            )
+          ),
+          {
+            canvas: [
+              { type: 'line', x1: 180, y1: 0, x2: 515, y2: 0, lineWidth: 0.5, color: 'gray' }
+            ]
+          },
+          pdf.emptyLine(),
+          pdf.columns(
+            pdf.blockStyle(
+              { width: 180 },
+              pdf.tab(),
+              pdf.arrowIf(),
+              ' Yes, ',
+              pdf.field('CV Treatment Decision', { annotation: '7816' })
+            ),
+            pdf.stack(
+              pdf.radio('Surgery NOT Recommended', this.data.sectionI.CVTxDecision),
+              pdf.radio(
+                'Surgery Recommended, Patient/Family Declined',
+                this.data.sectionI.CVTxDecision
+              ),
+              pdf.radio(
+                'Surgery Recommended, Patient/Family Accepted (Hybrid procedure)',
+                this.data.sectionI.CVTxDecision
+              )
+            )
+          ),
+          {
+            canvas: [
+              { type: 'line', x1: 180, y1: 0, x2: 515, y2: 0, lineWidth: 0.5, color: 'gray' }
+            ]
+          },
+          pdf.emptyLine(),
+          pdf.columns(
+            pdf.blockStyle(
+              { width: 180 },
+              pdf.tab(),
+              pdf.arrowIf(),
+              ' No, ',
+              pdf.field('CV Treatment Decision', { annotation: '7816' })
+            ),
+            pdf.stack(
+              pdf.radio('Surgical information sheet provided', this.data.sectionI.CVSheetDecision),
+              pdf.radio(
+                'Surgical information sheet NOT provided',
+                this.data.sectionI.CVSheetDecision
+              )
+            )
+          ),
+          pdf.line(),
+          pdf.emptyLine(),
+          pdf.block(
+            pdf.field('PCI for Multi-vessel Disease', { annotation: '7820' }),
+            pdf.tab(),
+            pdf.radio('No', this.data.sectionI.MultiVesselDz),
+            pdf.tab(),
+            pdf.radio('Yes', this.data.sectionI.MultiVesselDz)
+          ),
+          pdf.block(
+            pdf.tab(),
+            pdf.arrowIf(),
+            ' Yes, ',
+            pdf.field('Multi-vessel Procedure Type', { annotation: '7820' }),
+            '(in this lab visit)',
+            pdf.tab(),
+            pdf.radio('Initial PCI', this.data.sectionI.MultiVessProcType),
+            pdf.tab(),
+            pdf.radio('Staged PCI', this.data.sectionI.MultiVessProcType)
+          ),
+          pdf.block(
+            pdf.field('Stage PCI Planned'),
+            pdf.tab(),
+            pdf.radio('No', this.data.sectionI.StagePCIPlanned),
+            pdf.tab(),
+            pdf.radio('Yes', this.data.sectionI.StagePCIPlanned)
+          ),
+          pdf.line(),
+          pdf.emptyLine(),
+          pdf.columns(
+            pdf.field('PCI Indication', { annotation: '7825', width: 90 }),
+            pdf.stack(
+              pdf.radio('STEMI - Immediate PCI for Acute STEMI', this.data.sectionI.PCIIndication),
+              pdf.radio('STEMI - Stable (<= 12 hrs from Sx)', this.data.sectionI.PCIIndication),
+              pdf.radio('STEMI - Stable (> 12 hrs from Sx)', this.data.sectionI.PCIIndication),
+              pdf.radio('STEMI - Unstable (> 12 hrs from Sx)', this.data.sectionI.PCIIndication),
+              pdf.radio(
+                'STEMI (after successful lytics) <= 24 hrs',
+                this.data.sectionI.PCIIndication
+              ),
+              pdf.radio(
+                'STEMI (after successful lytics) > 24 hrs - 7 days',
+                this.data.sectionI.PCIIndication
+              ),
+              pdf.radio(
+                'STEMI - Rescue (after unsuccessful lytics)',
+                this.data.sectionI.PCIIndication
+              )
+            ),
+            pdf.stack(
+              pdf.radio('New Onset Angina <= 2 months', this.data.sectionI.PCIIndication),
+              pdf.radio('NSTE-ACS', this.data.sectionI.PCIIndication),
+              pdf.radio('Stable Angina', this.data.sectionI.PCIIndication),
+              pdf.radio('CAD (without ischemic Sx)', this.data.sectionI.PCIIndication),
+              pdf.radio('Other', this.data.sectionI.PCIIndication)
+            )
+          ),
+          pdf.columns(
+            pdf.blockStyle(
+              { width: 280 },
+              pdf.tab(),
+              pdf.arrowIf(),
+              ' any STEMI, ',
+              pdf.field('Symptom Date/Time'),
+              pdf.date(
+                this.data.sectionI.SymptomDateTime,
+                this.data.sectionI.SymptomOnset === 'Unknown' ? 'date' : 'datetime'
+              )
+            ),
+            pdf.block(
+              pdf.field('Symptom Onset'),
+              pdf.space(2),
+              pdf.radio('Exacted', this.data.sectionI.SymptomOnset),
+              pdf.space(2),
+              pdf.radio('Estimated', this.data.sectionI.SymptomOnset),
+              pdf.space(2),
+              pdf.radio('Unknown', this.data.sectionI.SymptomOnset)
+            )
+          ),
+          pdf.columns(
+            pdf.blockStyle(
+              { width: 195 },
+              pdf.tab(),
+              pdf.arrowIf(),
+              ' any STEMI (lytics), ',
+              pdf.field('Thrombolytics', { annotation: '7829' })
+            ),
+            pdf.stackStyle(
+              { width: 110 },
+              pdf.radio('No', this.data.sectionI.ThromTherapy),
+              pdf.radio('Streptokinase (SK)', this.data.sectionI.ThromTherapy)
+            ),
+            pdf.stack(
+              pdf.radio('Tissue Plasminogen Activators (tPA)', this.data.sectionI.ThromTherapy),
+              pdf.radio('Tenecteplase (TNK-tPA)', this.data.sectionI.ThromTherapy)
+            )
+          ),
+          pdf.block(
+            pdf.tab(2),
+            pdf.arrowIf(),
+            ' any Thrombolytics, ',
+            pdf.field('Start Date/Time', { annotation: '7830' }),
+            pdf.date(this.data.sectionI.ThromDateTime, 'datetime')
+          ),
+          pdf.block(
+            pdf.tab(),
+            pdf.arrowIf(),
+            ' not STEMI, ',
+            pdf.field('Syntax Score', { annotation: '7831' }),
+            pdf.tab(),
+            pdf.radio('Low', this.data.sectionI.SyntaxScore),
+            pdf.tab(),
+            pdf.radio('Intermediate', this.data.sectionI.SyntaxScore),
+            pdf.tab(),
+            pdf.radio('High', this.data.sectionI.SyntaxScore),
+            pdf.tab(),
+            pdf.radio('Unknown', this.data.sectionI.SyntaxScore),
+            pdf.tab(2),
+            pdf.field('Syntax Score Value'),
+            pdf.input(this.data.sectionI.SyntaxScoreValue)
+          ),
+          {
+            table: {
+              widths: [70, '*'],
+              body: [
+                [
+                  pdf.stackStyle(
+                    { fillColor: '#dddddd', margin: [0, 50, 0, 0] },
+                    pdf.block(
+                      pdf.arrowIf(),
+                      { text: ' PCI Indication', bold: true },
+                      `⁷⁸²⁵ = 'STEMI – Immediate PCI for Acute STEMI'`
+                    )
+                  ),
+                  pdf.stack(
+                    pdf.emptyLine(),
+                    pdf.block(
+                      pdf.field('STEMI or STEMI Equivalent First Noted', { annotation: '7835' }),
+                      pdf.tab(),
+                      pdf.radio('First ECG', this.data.sectionI.StemiFirstNoted),
+                      pdf.radio('Subsequent ECG', this.data.sectionI.StemiFirstNoted)
+                    ),
+                    pdf.block(
+                      pdf.tab(),
+                      pdf.arrowIf(),
+                      ' Subsequent ECG, ',
+                      pdf.field('ECG with STEMI/ STEMI Equivalent Date & Time', {
+                        annotation: '7836'
+                      }),
+                      pdf.date(this.data.sectionI.SubECGDateTime, 'datetime')
+                    ),
+                    pdf.block(
+                      pdf.tab(),
+                      pdf.arrowIf(),
+                      ' Subsequent ECG, ',
+                      pdf.field('ECG obtained in Emergency Department', { annotation: '7840' }),
+                      pdf.tab(),
+                      pdf.radio('No', this.data.sectionI.SubECGED),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionI.SubECGED)
+                    ),
+                    pdf.block(
+                      pdf.field('Transferred In For Immediate PCI for STEMI', {
+                        annotation: '7841'
+                      }),
+                      pdf.tab(),
+                      pdf.radio('No', this.data.sectionI.PatientTransPCI),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionI.PatientTransPCI)
+                    ),
+                    pdf.block(
+                      pdf.tab(),
+                      pdf.arrowIf(),
+                      ' Yes, ',
+                      pdf.field('Date & Time ED Presentation at Referring Facility', {
+                        annotation: '7842'
+                      }),
+                      pdf.date(this.data.sectionI.EDPresentDateTime, 'datetime')
+                    ),
+                    pdf.block(
+                      pdf.field('First Device Activation Date & Time', { annotation: '7845' }),
+                      pdf.date(this.data.sectionI.FirstDevActiDateTime, 'datetime')
+                    ),
+                    pdf.field('Patient Centered Reason for Delay in PCI', { annotation: '7850' }),
+                    pdf.columns(
+                      pdf.blockStyle(
+                        { width: 110 },
+                        pdf.tab(),
+                        pdf.arrowIf(),
+                        ' Yes, ',
+                        pdf.field('Reason', { annotation: '7851' })
+                      ),
+                      pdf.stack(
+                        pdf.columns(
+                          pdf.prop(
+                            pdf.radio(
+                              'Difficult Vascular Access',
+                              this.data.sectionI.PCIDelayReason
+                            ),
+                            { width: 250 }
+                          ),
+                          pdf.radio('Other', this.data.sectionI.PCIDelayReason)
+                        ),
+                        pdf.radio(
+                          'Difficulty crossing the culprit lesion',
+                          this.data.sectionI.PCIDelayReason
+                        ),
+                        pdf.radio(
+                          'Cardiac Arrest and/or need for intubation before PCI',
+                          this.data.sectionI.PCIDelayReason
+                        ),
+                        pdf.radio(
+                          'Patient delays in providing consent for PCI',
+                          this.data.sectionI.PCIDelayReason
+                        ),
+                        pdf.radio(
+                          'Emergent placement of LV support device before PCI',
+                          this.data.sectionI.PCIDelayReason
+                        )
+                      )
+                    )
+                  )
+                ]
+              ]
+            }
+          },
+          {
+            pageBreak: 'before',
+            table: {
+              widths: '*',
+              body: [
+                [
+                  pdf.blockStyle(
+                    { alignment: 'center', fillColor: '#dddddd', lineHeight: 1.0, colSpan: 2 },
+                    { text: 'Medication', bold: true },
+                    '⁷⁹⁹⁰'
+                  ),
+                  '',
+                  pdf.blockStyle(
+                    { alignment: 'center', fillColor: '#dddddd', lineHeight: 1.0 },
+                    { text: 'Administered', bold: true },
+                    '⁷⁹⁹⁵'
+                  )
+                ],
+                [
+                  { text: 'Anticoagulant', bold: true, margin: [0, 40, 0, 0] },
+                  pdf.stack(
+                    pdf.emptyLine(),
+                    'Argatroban',
+                    'Bivalirudin',
+                    'Fondaparinux',
+                    'Heparin Derivative',
+                    'Low Molecular Weight Heparin',
+                    'Unfractionated Heparin',
+                    'Warfarin'
+                  ),
+                  pdf.stack(
+                    pdf.emptyLine(),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionI.Argatroban),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionI.Argatroban)
+                    ),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionI.Bivalirudin),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionI.Bivalirudin)
+                    ),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionI.Fondaparinux),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionI.Fondaparinux)
+                    ),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionI.HeparinDerivative),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionI.HeparinDerivative)
+                    ),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionI.LMWH),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionI.LMWH)
+                    ),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionI.UFH),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionI.UFH)
+                    ),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionI.Warfarin),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionI.Warfarin)
+                    )
+                  )
+                ],
+                [
+                  { text: 'Antiplatelet', bold: true, margin: [0, 4, 0, 0] },
+                  pdf.stack(pdf.emptyLine(), 'Vorapaxar'),
+                  pdf.stack(
+                    pdf.emptyLine(),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionI.Vorapaxar),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionI.Vorapaxar)
+                    )
+                  )
+                ],
+                [
+                  {
+                    text: 'Glycoprotein (GP) IIb/IIIa Inhibitors',
+                    bold: true,
+                    margin: [0, 5, 0, 0]
+                  },
+                  pdf.stack(pdf.emptyLine(), 'GP IIb/IIIa Inhibitors (Any)'),
+                  pdf.stack(
+                    pdf.emptyLine(),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionI.GPIIbIIIa),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionI.GPIIbIIIa)
+                    )
+                  )
+                ],
+                [
+                  {
+                    text: 'Non-Vitamin K Dependent Oral Anticoangulant',
+                    bold: true,
+                    margin: [0, 17, 0, 0]
+                  },
+                  pdf.stack(pdf.emptyLine(), 'Apixaban', 'Dabigatran', 'Edoxaban', 'Rivaroxaban'),
+                  pdf.stack(
+                    pdf.emptyLine(),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionI.Apixaban),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionI.Apixaban)
+                    ),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionI.Dabigatran),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionI.Dabigatran)
+                    ),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionI.Edoxaban),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionI.Edoxaban)
+                    ),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionI.Rivaroxaban),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionI.Rivaroxaban)
+                    )
+                  )
+                ],
+                [
+                  { text: 'P2Y12 Inhibitors', bold: true, margin: [0, 23, 0, 0] },
+                  pdf.stack(pdf.emptyLine(), 'Cangrelor', 'Clopidogrel', 'Prasugrel', 'Ticagrelor'),
+                  pdf.stack(
+                    pdf.emptyLine(),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionI.Cangrelor),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionI.Cangrelor)
+                    ),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionI.Clopidogrel),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionI.Clopidogrel)
+                    ),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionI.Prasugrel),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionI.Prasugrel)
+                    ),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionI.Ticagrelor),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionI.Ticagrelor)
+                    )
+                  )
+                ]
+              ]
+            }
+          }
+        )
+      ]
+    ];
+  }
+
+  private sectionJ(): pdfMake.Content[][] {
+    return [
+      [
+        pdf.blockStyle(
+          // { style: 'section', pageBreak: 'before' },
+          { style: 'section' },
+          pdf.section('J. LESIONS AND DEVICES'),
+          {
+            text: ' (Complete for Each PCI Attempted or Performed)',
+            bold: false
+          }
+        )
+      ],
+      [
+        pdf.stack(pdf.emptyLine(), {
+          table: {
+            widths: '*',
+            body: [
+              [
+                pdf.blockStyle(
+                  { alignment: 'center', fillColor: '#dddddd', lineHeight: 1.0, colSpan: 2 },
+                  pdf.field('Lesion Counter', { annotation: '8000' }),
+                  pdf.input(this.data.sectionJ.PciLesions[0].LesionCounter)
+                ),
+                ''
+              ],
+              [
+                pdf.stackStyle(
+                  { colSpan: 2 },
+                  pdf.emptyLine(),
+                  pdf.block(
+                    pdf.field('Segment Number(s)', { annotation: '8001' }),
+                    pdf.inputArray(this.data.sectionJ.PciLesions[0].SegmentID)
+                  )
+                ),
+                ''
+              ],
+              [
+                pdf.stack(
+                  pdf.emptyLine(),
+                  pdf.block(
+                    pdf.field('Stenosis Immediately Prior to Rx', { annotation: '8004' }),
+                    pdf.input(this.data.sectionJ.PciLesions[0].StenosisPriorTreat),
+                    ' %'
+                  ),
+                  pdf.block(
+                    pdf.tab(),
+                    pdf.arrowIf(),
+                    ' 100%, ',
+                    pdf.field('Chronic Total Occlusion', { annotation: '8005' })
+                  ),
+                  pdf.block(
+                    pdf.tab(3),
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].ChronicOcclusion),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].ChronicOcclusion),
+                    pdf.tab(),
+                    pdf.radio('Unknown', this.data.sectionJ.PciLesions[0].ChronicOcclusion)
+                  ),
+                  pdf.field('TIMI Flow (Pre-Intervention)', { annotation: '8007' }),
+                  pdf.block(
+                    pdf.tab(3),
+                    pdf.radio('TIMI-0', this.data.sectionJ.PciLesions[0].PreProcTIMI),
+                    pdf.tab(),
+                    pdf.radio('TIMI-1', this.data.sectionJ.PciLesions[0].PreProcTIMI),
+                    pdf.tab(),
+                    pdf.radio('TIMI-2', this.data.sectionJ.PciLesions[0].PreProcTIMI),
+                    pdf.tab(),
+                    pdf.radio('TIMI-3', this.data.sectionJ.PciLesions[0].PreProcTIMI)
+                  ),
+                  pdf.lineHalf(),
+                  pdf.emptyLine(),
+                  pdf.block(
+                    pdf.field('Previously Treated Lesion', { annotation: '8008' }),
+                    pdf.tab(),
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].PrevTreatedLesion),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].PrevTreatedLesion)
+                  ),
+                  pdf.block(
+                    pdf.tab(),
+                    pdf.arrowIf(),
+                    ' Yes, ',
+                    pdf.field('Date', { annotation: '8009' }),
+                    pdf.date(this.data.sectionJ.PciLesions[0].PrevTreatedLesionDate)
+                  ),
+                  pdf.block(
+                    pdf.tab(),
+                    pdf.arrowIf(),
+                    ' Yes, ',
+                    pdf.field('Treated with Stent', { annotation: '8010' }),
+                    pdf.tab(),
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].PreviousStent),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].PreviousStent)
+                  ),
+                  pdf.block(
+                    pdf.tab(2),
+                    pdf.arrowIf(),
+                    ' Yes, ',
+                    pdf.field('In-stent Restenosis', { annotation: '8011' }),
+                    pdf.tab(),
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].InRestenosis),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].InRestenosis)
+                  ),
+                  pdf.block(
+                    pdf.tab(2),
+                    pdf.arrowIf(),
+                    ' Yes, ',
+                    pdf.field('In-stent Thrombosis', { annotation: '8012' }),
+                    pdf.tab(),
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].InThrombosis),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].InThrombosis)
+                  ),
+                  pdf.block(
+                    pdf.tab(2),
+                    pdf.arrowIf(),
+                    ' Yes, ',
+                    pdf.field('Stent Type', { annotation: '8013' })
+                  ),
+                  pdf.columns(
+                    { text: '', width: 35 },
+                    pdf.stackStyle(
+                      { width: 115 },
+                      pdf.radio(
+                        'Bare Metal Stent (BMS)',
+                        this.data.sectionJ.PciLesions[0].StentType
+                      ),
+                      pdf.radio(
+                        'Drug-Eluting Stent (DES)',
+                        this.data.sectionJ.PciLesions[0].StentType
+                      )
+                    ),
+                    pdf.stack(
+                      pdf.radio('Bioabsorbable Stent', this.data.sectionJ.PciLesions[0].StentType),
+                      pdf.radio('Unknown', this.data.sectionJ.PciLesions[0].StentType)
+                    )
+                  ),
+                  pdf.lineHalf(),
+                  pdf.emptyLine(),
+                  pdf.block(
+                    pdf.field('Guidewire Across Lesion', { annotation: '8023' }),
+                    pdf.tab(),
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].GuidewireLesion),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].GuidewireLesion)
+                  ),
+                  pdf.block(pdf.tab(), pdf.arrowIf(), ' Yes, ', pdf.field('Guidewire Across')),
+                  pdf.block(
+                    pdf.tab(3),
+                    pdf.check('Main branch', this.data.sectionJ.PciLesions[0].GuidewireAcross),
+                    pdf.tab(),
+                    pdf.check('Side branch', this.data.sectionJ.PciLesions[0].GuidewireAcross)
+                  ),
+                  pdf.block(
+                    pdf.tab(),
+                    pdf.arrowIf(),
+                    ' Yes, ',
+                    pdf.field('Device(s) Deployed', { annotation: '8024' }),
+                    pdf.tab(),
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].DeviceDeployed),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].DeviceDeployed)
+                  ),
+                  pdf.block(
+                    pdf.tab(2),
+                    pdf.arrowIf(),
+                    ' Yes, ',
+                    pdf.field('Intracoronary Measurement Study')
+                  ),
+                  pdf.block(
+                    pdf.tab(4),
+                    pdf.radio(
+                      'No',
+                      this.data.sectionJ.PciLesions[0].InThroIntraCoroMeasurementmbosis
+                    ),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].IntraCoroMeasurement)
+                  ),
+                  pdf.block(
+                    pdf.tab(3),
+                    pdf.arrowIf(),
+                    ' Yes, ',
+                    pdf.field('Intracoronary Measurement Site')
+                  ),
+                  pdf.block(
+                    pdf.tab(5),
+                    pdf.check(
+                      'Main branch',
+                      this.data.sectionJ.PciLesions[0].IntraCoroMeasurementSite
+                    ),
+                    pdf.tab(),
+                    pdf.check(
+                      'Side branch',
+                      this.data.sectionJ.PciLesions[0].IntraCoroMeasurementSite
+                    )
+                  ),
+                  pdf.block(
+                    pdf.tab(4),
+                    pdf.arrowIf(),
+                    ' Main branch, ',
+                    pdf.field('Measurement Type')
+                  ),
+                  pdf.columns(
+                    { text: '', width: 55 },
+                    pdf.block(
+                      pdf.field('FFR Ratio'),
+                      pdf.input(this.data.sectionJ.PciLesions[0].MB_FFR, { blank: 6 })
+                    ),
+                    pdf.block(
+                      pdf.field('FFR Type'),
+                      pdf.radio('IC', this.data.sectionJ.PciLesions[0].MB_FFR_Type),
+                      pdf.space(2),
+                      pdf.radio('IV', this.data.sectionJ.PciLesions[0].MB_FFR_Type)
+                    )
+                  ),
+                  pdf.block(
+                    pdf.tab(6),
+                    pdf.field('iFR Ratio'),
+                    pdf.input(this.data.sectionJ.PciLesions[0].MB_IFR, { blank: 6 })
+                  ),
+                  pdf.columns(
+                    { text: '', width: 55 },
+                    pdf.block(
+                      pdf.field('IVUS Pre MLA'),
+                      pdf.input(this.data.sectionJ.PciLesions[0].MB_IVUS_Pre, { blank: 5 })
+                    ),
+                    pdf.block(
+                      pdf.field('IVUS Post MLA'),
+                      pdf.input(this.data.sectionJ.PciLesions[0].MB_IVUS_Post, { blank: 5 })
+                    )
+                  ),
+                  pdf.columns(
+                    { text: '', width: 55 },
+                    pdf.block(
+                      pdf.field('OCT Pre MLA'),
+                      pdf.input(this.data.sectionJ.PciLesions[0].MB_OCT_Pre, { blank: 5 })
+                    ),
+                    pdf.block(
+                      pdf.field('OCT Post MLA'),
+                      pdf.input(this.data.sectionJ.PciLesions[0].MB_OCT_Post, { blank: 5 })
+                    )
+                  ),
+                  pdf.block(
+                    pdf.tab(4),
+                    pdf.arrowIf(),
+                    ' Side branch, ',
+                    pdf.field('Measurement Type')
+                  ),
+                  pdf.columns(
+                    { text: '', width: 55 },
+                    pdf.block(
+                      pdf.field('FFR Ratio'),
+                      pdf.input(this.data.sectionJ.PciLesions[0].SB_FFR, { blank: 6 })
+                    ),
+                    pdf.block(
+                      pdf.field('FFR Type'),
+                      pdf.radio('IC', this.data.sectionJ.PciLesions[0].SB_FFR_Type),
+                      pdf.space(2),
+                      pdf.radio('IV', this.data.sectionJ.PciLesions[0].SB_FFR_Type)
+                    )
+                  ),
+                  pdf.block(
+                    pdf.tab(6),
+                    pdf.field('iFR Ratio'),
+                    pdf.input(this.data.sectionJ.PciLesions[0].SB_IFR, { blank: 6 })
+                  ),
+                  pdf.columns(
+                    { text: '', width: 55 },
+                    pdf.block(
+                      pdf.field('IVUS Pre MLA'),
+                      pdf.input(this.data.sectionJ.PciLesions[0].SB_IVUS_Pre, { blank: 5 })
+                    ),
+                    pdf.block(
+                      pdf.field('IVUS Post MLA'),
+                      pdf.input(this.data.sectionJ.PciLesions[0].SB_IVUS_Post, { blank: 5 })
+                    )
+                  ),
+                  pdf.columns(
+                    { text: '', width: 55 },
+                    pdf.block(
+                      pdf.field('OCT Pre MLA'),
+                      pdf.input(this.data.sectionJ.PciLesions[0].SB_OCT_Pre, { blank: 5 })
+                    ),
+                    pdf.block(
+                      pdf.field('OCT Post MLA'),
+                      pdf.input(this.data.sectionJ.PciLesions[0].SB_OCT_Post, { blank: 5 })
+                    )
+                  ),
+                  pdf.block(
+                    pdf.tab(2),
+                    pdf.arrowIf(),
+                    ' Yes, ',
+                    pdf.field('Stent(s) Deployed'),
+                    pdf.tab(),
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].StentDeployed),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].StentDeployed)
+                  ),
+                  pdf.block(
+                    pdf.tab(3),
+                    pdf.arrowIf(),
+                    ' Yes, ',
+                    pdf.field('Number of Stent Used'),
+                    pdf.input(this.data.sectionJ.PciLesions[0].NumberStentUsed)
+                  ),
+                  pdf.block(
+                    pdf.tab(3),
+                    pdf.arrowIf(),
+                    ' Yes, ',
+                    pdf.field('Stent Deployed Strategy'),
+                    pdf.check(
+                      'Direct stenting',
+                      this.data.sectionJ.PciLesions[0].StentDeployedStrategy
+                    )
+                  ),
+                  pdf.block(
+                    pdf.tab(5),
+                    pdf.check(
+                      'Elective stenting',
+                      this.data.sectionJ.PciLesions[0].StentDeployedStrategy
+                    ),
+                    pdf.tab(),
+                    pdf.check(
+                      'Bailout stenting',
+                      this.data.sectionJ.PciLesions[0].StentDeployedStrategy
+                    )
+                  ),
+                  pdf.block(
+                    pdf.tab(2),
+                    pdf.arrowIf(),
+                    ' Yes, ',
+                    pdf.field('Stenosis (Post-Intervention)', { annotation: '8025' }),
+                    pdf.input(this.data.sectionJ.PciLesions[0].StenosisPostProc, { blank: 6 }),
+                    ' %'
+                  ),
+                  pdf.block(
+                    pdf.tab(2),
+                    pdf.arrowIf(),
+                    ' Yes, ',
+                    pdf.field('TIMI Flow (Post-Intervention)')
+                  ),
+                  pdf.block(
+                    pdf.tab(4),
+                    pdf.radio('TIMI-0', this.data.sectionJ.PciLesions[0].PostProcTIMI),
+                    pdf.tab(),
+                    pdf.radio('TIMI-1', this.data.sectionJ.PciLesions[0].PostProcTIMI),
+                    pdf.tab(),
+                    pdf.radio('TIMI-2', this.data.sectionJ.PciLesions[0].PostProcTIMI),
+                    pdf.tab(),
+                    pdf.radio('TIMI-3', this.data.sectionJ.PciLesions[0].PostProcTIMI)
+                  )
+                ),
+                pdf.stack(
+                  pdf.emptyLine(),
+                  pdf.block(
+                    { text: 'If ', bold: true },
+                    ' PCI Indication⁷⁸²⁵ is STEMI or NSTE-ACS, ',
+                    pdf.field('Culprit Stenosis', { annotation: '8002' }),
+                    pdf.tab(),
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].CulpritArtery),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].CulpritArtery),
+                    pdf.tab(),
+                    pdf.radio('Unknown', this.data.sectionJ.PciLesions[0].CulpritArtery)
+                  ),
+                  pdf.lineHalf(),
+                  pdf.emptyLine(),
+                  pdf.block(
+                    pdf.field('Lesion in Graft', { annotation: '8015' }),
+                    pdf.tab(),
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].LesionGraft),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].LesionGraft)
+                  ),
+                  pdf.block(
+                    pdf.tab(),
+                    pdf.arrowIf(),
+                    ' Yes, ',
+                    pdf.field('Type of CABG Graft', { annotation: '8016' })
+                  ),
+                  pdf.block(
+                    pdf.tab(3),
+                    pdf.radio('LIMA', this.data.sectionJ.PciLesions[0].LesionGraftType),
+                    pdf.tab(),
+                    pdf.radio('Vein', this.data.sectionJ.PciLesions[0].LesionGraftType),
+                    pdf.tab(),
+                    pdf.radio('Other Artery', this.data.sectionJ.PciLesions[0].LesionGraftType)
+                  ),
+                  pdf.block(
+                    pdf.tab(),
+                    pdf.arrowIf(),
+                    ' Yes, ',
+                    pdf.field('Location in Graft', { annotation: '8017' })
+                  ),
+                  pdf.block(
+                    pdf.tab(3),
+                    pdf.radio('Aortic', this.data.sectionJ.PciLesions[0].LocGraft),
+                    pdf.tab(),
+                    pdf.radio('Body', this.data.sectionJ.PciLesions[0].LocGraft),
+                    pdf.tab(),
+                    pdf.radio('Distal', this.data.sectionJ.PciLesions[0].LocGraft)
+                  ),
+                  pdf.block(
+                    pdf.field('Navigate through Graft to Native Lesion', { annotation: '8018' }),
+                    pdf.space(),
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].NavGraftNatLes),
+                    pdf.space(2),
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].NavGraftNatLes)
+                  ),
+                  pdf.lineHalf(),
+                  pdf.emptyLine(),
+                  pdf.block(
+                    pdf.field('Lesion Complexity', { annotation: '8019' }),
+                    pdf.tab(),
+                    pdf.radio('Non-High/Non-C', this.data.sectionJ.PciLesions[0].LesionComplexity),
+                    pdf.tab(),
+                    pdf.radio('High/C', this.data.sectionJ.PciLesions[0].LesionComplexity)
+                  ),
+                  pdf.block(
+                    pdf.field('Lesion Length', { annotation: '8020' }),
+                    pdf.input(this.data.sectionJ.PciLesions[0].LesionLength),
+                    ' mm'
+                  ),
+                  pdf.block(
+                    pdf.field('Severe Calcification', { annotation: '8021' }),
+                    pdf.tab(),
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].SevereCalcification),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].SevereCalcification)
+                  ),
+                  pdf.lineHalf(),
+                  pdf.emptyLine(),
+                  pdf.block(
+                    pdf.field('Bifurcation Lesion'),
+                    pdf.tab(),
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].BifurcationLesion),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].BifurcationLesion)
+                  ),
+                  pdf.block(
+                    pdf.tab(),
+                    pdf.arrowIf(),
+                    ' Yes, ',
+                    pdf.field('Bifurcation Classification')
+                  ),
+                  pdf.block(
+                    pdf.tab(3),
+                    pdf.check('1,1,1', this.data.sectionJ.PciLesions[0].BifurcationClassification),
+                    pdf.tab(),
+                    pdf.check('1,1,0', this.data.sectionJ.PciLesions[0].BifurcationClassification),
+                    pdf.tab(),
+                    pdf.check('1,0,1', this.data.sectionJ.PciLesions[0].BifurcationClassification),
+                    pdf.tab(),
+                    pdf.check('0,1,1', this.data.sectionJ.PciLesions[0].BifurcationClassification)
+                  ),
+                  pdf.block(
+                    pdf.tab(3),
+                    pdf.check('1,0,0', this.data.sectionJ.PciLesions[0].BifurcationClassification),
+                    pdf.tab(),
+                    pdf.check('0,1,0', this.data.sectionJ.PciLesions[0].BifurcationClassification),
+                    pdf.tab(),
+                    pdf.check('0,0,1', this.data.sectionJ.PciLesions[0].BifurcationClassification)
+                  ),
+                  pdf.block(
+                    pdf.tab(),
+                    pdf.arrowIf(),
+                    ' Yes, ',
+                    pdf.field('Bifurcation Stenting'),
+                    pdf.tab(),
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].BifurcationStenting),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].BifurcationStenting)
+                  ),
+                  pdf.block(
+                    pdf.tab(2),
+                    pdf.arrowIf(),
+                    ' Yes, ',
+                    pdf.field('Stent Technique Strategy')
+                  ),
+                  pdf.block(
+                    pdf.tab(4),
+                    pdf.radio(
+                      'Provisional MB stenting (stent MB first)',
+                      this.data.sectionJ.PciLesions[0].StentTechniqueStrategy
+                    )
+                  ),
+                  pdf.block(
+                    pdf.tab(4),
+                    pdf.radio(
+                      'Provisional SB stenting (stent SB first)',
+                      this.data.sectionJ.PciLesions[0].StentTechniqueStrategy
+                    )
+                  ),
+                  pdf.block(pdf.tab(2), pdf.arrowIf(), ' Yes, ', pdf.field('Stent Technique')),
+                  pdf.block(
+                    pdf.tab(4),
+                    pdf.radio(
+                      'DK Crush (Double Kissing Crush)',
+                      this.data.sectionJ.PciLesions[0].StentTechnique
+                    )
+                  ),
+                  pdf.columns(
+                    { text: '', width: 36 },
+                    pdf.radio('Culotte', this.data.sectionJ.PciLesions[0].StentTechnique),
+                    pdf.radio('V stenting', this.data.sectionJ.PciLesions[0].StentTechnique)
+                  ),
+                  pdf.columns(
+                    { text: '', width: 36 },
+                    pdf.radio(
+                      'Modified T stenting',
+                      this.data.sectionJ.PciLesions[0].StentTechnique
+                    ),
+                    pdf.radio('T and Protusion', this.data.sectionJ.PciLesions[0].StentTechnique)
+                  ),
+                  pdf.columns(
+                    { text: '', width: 36 },
+                    pdf.radio('Kissing stenting', this.data.sectionJ.PciLesions[0].StentTechnique),
+                    pdf.radio('Dedicated stenting', this.data.sectionJ.PciLesions[0].StentTechnique)
+                  )
+                )
+              ]
+            ]
+          }
+        })
       ]
     ];
   }
