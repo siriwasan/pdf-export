@@ -2671,19 +2671,6 @@ export class CathPciReport {
                 pdf.stack(
                   pdf.emptyLine(),
                   pdf.block(
-                    { text: 'If ', bold: true },
-                    ' PCI Indication⁷⁸²⁵ is STEMI or NSTE-ACS, ',
-                    pdf.field('Culprit Stenosis', { annotation: '8002' }),
-                    pdf.tab(),
-                    pdf.radio('No', this.data.sectionJ.PciLesions[0].CulpritArtery),
-                    pdf.tab(),
-                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].CulpritArtery),
-                    pdf.tab(),
-                    pdf.radio('Unknown', this.data.sectionJ.PciLesions[0].CulpritArtery)
-                  ),
-                  pdf.lineHalf(),
-                  pdf.emptyLine(),
-                  pdf.block(
                     pdf.field('Stenosis Immediately Prior to Rx', { annotation: '8004' }),
                     pdf.input(this.data.sectionJ.PciLesions[0].StenosisPriorTreat),
                     ' %'
@@ -2786,23 +2773,46 @@ export class CathPciReport {
                   pdf.lineHalf(),
                   pdf.emptyLine(),
                   pdf.block(
-                    pdf.field('Lesion Complexity', { annotation: '8019' }),
+                    pdf.field('Lesion in Graft', { annotation: '8015' }),
                     pdf.tab(),
-                    pdf.radio('Non-High/Non-C', this.data.sectionJ.PciLesions[0].LesionComplexity),
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].LesionGraft),
                     pdf.tab(),
-                    pdf.radio('High/C', this.data.sectionJ.PciLesions[0].LesionComplexity)
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].LesionGraft)
                   ),
                   pdf.block(
-                    pdf.field('Lesion Length', { annotation: '8020' }),
-                    pdf.input(this.data.sectionJ.PciLesions[0].LesionLength),
-                    ' mm'
+                    pdf.tab(),
+                    pdf.arrowIf(),
+                    ' Yes, ',
+                    pdf.field('Type of CABG Graft', { annotation: '8016' })
                   ),
                   pdf.block(
-                    pdf.field('Severe Calcification', { annotation: '8021' }),
+                    pdf.tab(3),
+                    pdf.radio('LIMA', this.data.sectionJ.PciLesions[0].LesionGraftType),
                     pdf.tab(),
-                    pdf.radio('No', this.data.sectionJ.PciLesions[0].SevereCalcification),
+                    pdf.radio('Vein', this.data.sectionJ.PciLesions[0].LesionGraftType),
                     pdf.tab(),
-                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].SevereCalcification)
+                    pdf.radio('Other Artery', this.data.sectionJ.PciLesions[0].LesionGraftType)
+                  ),
+                  pdf.block(
+                    pdf.tab(),
+                    pdf.arrowIf(),
+                    ' Yes, ',
+                    pdf.field('Location in Graft', { annotation: '8017' })
+                  ),
+                  pdf.block(
+                    pdf.tab(3),
+                    pdf.radio('Aortic', this.data.sectionJ.PciLesions[0].LocGraft),
+                    pdf.tab(),
+                    pdf.radio('Body', this.data.sectionJ.PciLesions[0].LocGraft),
+                    pdf.tab(),
+                    pdf.radio('Distal', this.data.sectionJ.PciLesions[0].LocGraft)
+                  ),
+                  pdf.block(
+                    pdf.field('Navigate through Graft to Native Lesion', { annotation: '8018' }),
+                    pdf.space(),
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].NavGraftNatLes),
+                    pdf.space(2),
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].NavGraftNatLes)
                   ),
                   pdf.lineHalf(),
                   pdf.emptyLine(),
@@ -2897,46 +2907,36 @@ export class CathPciReport {
                 pdf.stack(
                   pdf.emptyLine(),
                   pdf.block(
-                    pdf.field('Lesion in Graft', { annotation: '8015' }),
+                    { text: 'If ', bold: true },
+                    ' PCI Indication⁷⁸²⁵ is STEMI or NSTE-ACS, ',
+                    pdf.field('Culprit Stenosis', { annotation: '8002' }),
                     pdf.tab(),
-                    pdf.radio('No', this.data.sectionJ.PciLesions[0].LesionGraft),
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].CulpritArtery),
                     pdf.tab(),
-                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].LesionGraft)
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].CulpritArtery),
+                    pdf.tab(),
+                    pdf.radio('Unknown', this.data.sectionJ.PciLesions[0].CulpritArtery)
+                  ),
+                  pdf.lineHalf(),
+                  pdf.emptyLine(),
+                  pdf.block(
+                    pdf.field('Lesion Complexity', { annotation: '8019' }),
+                    pdf.tab(),
+                    pdf.radio('Non-High/Non-C', this.data.sectionJ.PciLesions[0].LesionComplexity),
+                    pdf.tab(),
+                    pdf.radio('High/C', this.data.sectionJ.PciLesions[0].LesionComplexity)
                   ),
                   pdf.block(
-                    pdf.tab(),
-                    pdf.arrowIf(),
-                    ' Yes, ',
-                    pdf.field('Type of CABG Graft', { annotation: '8016' })
+                    pdf.field('Lesion Length', { annotation: '8020' }),
+                    pdf.input(this.data.sectionJ.PciLesions[0].LesionLength),
+                    ' mm'
                   ),
                   pdf.block(
-                    pdf.tab(3),
-                    pdf.radio('LIMA', this.data.sectionJ.PciLesions[0].LesionGraftType),
+                    pdf.field('Severe Calcification', { annotation: '8021' }),
                     pdf.tab(),
-                    pdf.radio('Vein', this.data.sectionJ.PciLesions[0].LesionGraftType),
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].SevereCalcification),
                     pdf.tab(),
-                    pdf.radio('Other Artery', this.data.sectionJ.PciLesions[0].LesionGraftType)
-                  ),
-                  pdf.block(
-                    pdf.tab(),
-                    pdf.arrowIf(),
-                    ' Yes, ',
-                    pdf.field('Location in Graft', { annotation: '8017' })
-                  ),
-                  pdf.block(
-                    pdf.tab(3),
-                    pdf.radio('Aortic', this.data.sectionJ.PciLesions[0].LocGraft),
-                    pdf.tab(),
-                    pdf.radio('Body', this.data.sectionJ.PciLesions[0].LocGraft),
-                    pdf.tab(),
-                    pdf.radio('Distal', this.data.sectionJ.PciLesions[0].LocGraft)
-                  ),
-                  pdf.block(
-                    pdf.field('Navigate through Graft to Native Lesion', { annotation: '8018' }),
-                    pdf.space(),
-                    pdf.radio('No', this.data.sectionJ.PciLesions[0].NavGraftNatLes),
-                    pdf.space(2),
-                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].NavGraftNatLes)
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].SevereCalcification)
                   ),
                   pdf.lineHalf(),
                   pdf.emptyLine(),
@@ -3184,31 +3184,194 @@ export class CathPciReport {
                 )
               ],
               [
-                pdf.stack(
+                pdf.stackStyle(
+                  { colSpan: 2 },
                   pdf.emptyLine(),
                   pdf.block(
-                    pdf.field('Final Adjuctive Balloon Angioplasty'),
+                    pdf.field('Complication During PCI'),
                     pdf.tab(),
-                    pdf.radio('No', this.data.sectionJ.PciLesions[0].FinalAdjBalAngioplasty),
-                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].FinalAdjBalAngioplasty)
-                  ),
-                  pdf.block(
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].ComplicationPCI),
                     pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].ComplicationPCI),
+                    pdf.tab(4),
                     pdf.arrowIf(),
                     ' Yes, ',
-                    pdf.field('Proximal Optimization'),
-                    pdf.tab(),
-                    pdf.radio('No', this.data.sectionJ.PciLesions[0].ProxOptimize),
-                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].ProxOptimize)
+                    pdf.field('Detail of Complication')
                   ),
-                  pdf.block(
-                    pdf.tab(),
-                    pdf.arrowIf(),
-                    ' Yes, ',
-                    pdf.field('Final Kissing Balloon Inflation'),
-                    pdf.tab(),
-                    pdf.radio('No', this.data.sectionJ.PciLesions[0].FinalKissBalloon),
-                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].FinalKissBalloon)
+                  pdf.stack(
+                    pdf.columns(
+                      { text: '', width: 9 },
+                      pdf.stack(
+                        pdf.check(
+                          'Abrupt Vessel Closure',
+                          this.data.sectionJ.PciLesions[0].ComplicationPCIDetail
+                        ),
+                        pdf.block(
+                          pdf.tab(2),
+                          pdf.radio(
+                            'Re-established flow',
+                            this.data.sectionJ.PciLesions[0].AbruptVesselClosure
+                          )
+                        ),
+                        pdf.block(
+                          pdf.tab(2),
+                          pdf.radio(
+                            'Observation',
+                            this.data.sectionJ.PciLesions[0].AbruptVesselClosure
+                          )
+                        ),
+                        pdf.check(
+                          'Coronary Artery Perforation',
+                          this.data.sectionJ.PciLesions[0].ComplicationPCIDetail
+                        ),
+                        pdf.block(
+                          pdf.tab(2),
+                          pdf.radio(
+                            'Stent grafting',
+                            this.data.sectionJ.PciLesions[0].CoronaryArteryPerforation
+                          )
+                        ),
+                        pdf.block(
+                          pdf.tab(2),
+                          pdf.radio(
+                            'Prolong ballon inflation',
+                            this.data.sectionJ.PciLesions[0].CoronaryArteryPerforation
+                          )
+                        ),
+                        pdf.block(
+                          pdf.tab(2),
+                          pdf.radio(
+                            'Distal embolization (Coil)',
+                            this.data.sectionJ.PciLesions[0].CoronaryArteryPerforation
+                          )
+                        ),
+                        pdf.block(
+                          pdf.tab(2),
+                          pdf.radio(
+                            'Distal embolization (Fat)',
+                            this.data.sectionJ.PciLesions[0].CoronaryArteryPerforation
+                          )
+                        ),
+                        pdf.block(
+                          pdf.tab(2),
+                          pdf.radio(
+                            'Distal embolization (Clot)',
+                            this.data.sectionJ.PciLesions[0].CoronaryArteryPerforation
+                          )
+                        ),
+                        pdf.block(
+                          pdf.tab(2),
+                          pdf.radio(
+                            'Observation',
+                            this.data.sectionJ.PciLesions[0].CoronaryArteryPerforation
+                          )
+                        )
+                      ),
+                      pdf.stack(
+                        pdf.check(
+                          'Coronary Artery Dissection',
+                          this.data.sectionJ.PciLesions[0].ComplicationPCIDetail
+                        ),
+                        pdf.block(
+                          pdf.tab(2),
+                          pdf.radio(
+                            'Stenting',
+                            this.data.sectionJ.PciLesions[0].CoronaryArteryDissection
+                          )
+                        ),
+                        pdf.block(
+                          pdf.tab(2),
+                          pdf.radio(
+                            'Prolong ballon inflation',
+                            this.data.sectionJ.PciLesions[0].CoronaryArteryDissection
+                          )
+                        ),
+                        pdf.block(
+                          pdf.tab(2),
+                          pdf.radio(
+                            'Observation',
+                            this.data.sectionJ.PciLesions[0].CoronaryArteryDissection
+                          )
+                        ),
+                        pdf.check(
+                          'Longitudinal Stent Deformation',
+                          this.data.sectionJ.PciLesions[0].ComplicationPCIDetail
+                        ),
+                        pdf.block(
+                          pdf.tab(2),
+                          pdf.radio(
+                            'Re-ballon inflation',
+                            this.data.sectionJ.PciLesions[0].LongitudinalStentDeformation
+                          )
+                        ),
+                        pdf.block(
+                          pdf.tab(2),
+                          pdf.radio(
+                            'Repeat stent implantation',
+                            this.data.sectionJ.PciLesions[0].LongitudinalStentDeformation
+                          )
+                        ),
+                        pdf.block(
+                          pdf.tab(2),
+                          pdf.radio(
+                            'Observation',
+                            this.data.sectionJ.PciLesions[0].LongitudinalStentDeformation
+                          )
+                        ),
+                        pdf.check(
+                          'Thrombus Embolization',
+                          this.data.sectionJ.PciLesions[0].ComplicationPCIDetail
+                        ),
+                        pdf.check(
+                          'Disruption of Collateral flow',
+                          this.data.sectionJ.PciLesions[0].ComplicationPCIDetail
+                        )
+                      ),
+                      pdf.stack(
+                        pdf.check(
+                          'Burr Entrapment',
+                          this.data.sectionJ.PciLesions[0].ComplicationPCIDetail
+                        ),
+                        pdf.block(
+                          pdf.tab(2),
+                          pdf.radio(
+                            'Success manual pullback',
+                            this.data.sectionJ.PciLesions[0].BurrEntrapment
+                          )
+                        ),
+                        pdf.block(
+                          pdf.tab(2),
+                          pdf.radio(
+                            'Coronary artery bypass graft',
+                            this.data.sectionJ.PciLesions[0].BurrEntrapment
+                          )
+                        ),
+                        pdf.block(
+                          pdf.tab(2),
+                          pdf.radio('Observation', this.data.sectionJ.PciLesions[0].BurrEntrapment)
+                        ),
+                        pdf.check(
+                          'Device Embolization',
+                          this.data.sectionJ.PciLesions[0].ComplicationPCIDetail
+                        ),
+                        pdf.block(
+                          pdf.tab(2),
+                          pdf.radio('Retrieve', this.data.sectionJ.PciLesions[0].DeviceEmbolization)
+                        ),
+                        pdf.block(
+                          pdf.tab(2),
+                          pdf.radio('Retain', this.data.sectionJ.PciLesions[0].DeviceEmbolization)
+                        ),
+                        pdf.check(
+                          'Persistent Slow flow or No flow',
+                          this.data.sectionJ.PciLesions[0].ComplicationPCIDetail
+                        ),
+                        pdf.check(
+                          'Intramural Hematoma',
+                          this.data.sectionJ.PciLesions[0].ComplicationPCIDetail
+                        )
+                      )
+                    )
                   )
                 ),
                 ''
