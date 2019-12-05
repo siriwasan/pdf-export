@@ -3372,7 +3372,33 @@ export class CathPciReport {
                         )
                       )
                     )
-                  )
+                  ),
+                  {
+                    canvas: [
+                      {
+                        type: 'line',
+                        x1: 160,
+                        y1: -140,
+                        x2: 160,
+                        y2: 0,
+                        lineWidth: 0.5,
+                        color: 'gray'
+                      }
+                    ]
+                  },
+                  {
+                    canvas: [
+                      {
+                        type: 'line',
+                        x1: 323,
+                        y1: -140,
+                        x2: 323,
+                        y2: 0,
+                        lineWidth: 0.5,
+                        color: 'gray'
+                      }
+                    ]
+                  }
                 ),
                 ''
               ]
