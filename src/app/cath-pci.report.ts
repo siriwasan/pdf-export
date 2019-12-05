@@ -2671,6 +2671,19 @@ export class CathPciReport {
                 pdf.stack(
                   pdf.emptyLine(),
                   pdf.block(
+                    { text: 'If ', bold: true },
+                    ' PCI Indication⁷⁸²⁵ is STEMI or NSTE-ACS, ',
+                    pdf.field('Culprit Stenosis', { annotation: '8002' }),
+                    pdf.tab(),
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].CulpritArtery),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].CulpritArtery),
+                    pdf.tab(),
+                    pdf.radio('Unknown', this.data.sectionJ.PciLesions[0].CulpritArtery)
+                  ),
+                  pdf.lineHalf(),
+                  pdf.emptyLine(),
+                  pdf.block(
                     pdf.field('Stenosis Immediately Prior to Rx', { annotation: '8004' }),
                     pdf.input(this.data.sectionJ.PciLesions[0].StenosisPriorTreat),
                     ' %'
@@ -2769,6 +2782,161 @@ export class CathPciReport {
                       pdf.radio('Bioabsorbable Stent', this.data.sectionJ.PciLesions[0].StentType),
                       pdf.radio('Unknown', this.data.sectionJ.PciLesions[0].StentType)
                     )
+                  ),
+                  pdf.lineHalf(),
+                  pdf.emptyLine(),
+                  pdf.block(
+                    pdf.field('Lesion Complexity', { annotation: '8019' }),
+                    pdf.tab(),
+                    pdf.radio('Non-High/Non-C', this.data.sectionJ.PciLesions[0].LesionComplexity),
+                    pdf.tab(),
+                    pdf.radio('High/C', this.data.sectionJ.PciLesions[0].LesionComplexity)
+                  ),
+                  pdf.block(
+                    pdf.field('Lesion Length', { annotation: '8020' }),
+                    pdf.input(this.data.sectionJ.PciLesions[0].LesionLength),
+                    ' mm'
+                  ),
+                  pdf.block(
+                    pdf.field('Severe Calcification', { annotation: '8021' }),
+                    pdf.tab(),
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].SevereCalcification),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].SevereCalcification)
+                  ),
+                  pdf.lineHalf(),
+                  pdf.emptyLine(),
+                  pdf.block(
+                    pdf.field('Bifurcation Lesion'),
+                    pdf.tab(),
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].BifurcationLesion),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].BifurcationLesion)
+                  ),
+                  pdf.block(
+                    pdf.tab(),
+                    pdf.arrowIf(),
+                    ' Yes, ',
+                    pdf.field('Bifurcation Classification')
+                  ),
+                  pdf.block(
+                    pdf.tab(3),
+                    pdf.check('1,1,1', this.data.sectionJ.PciLesions[0].BifurcationClassification),
+                    pdf.tab(),
+                    pdf.check('1,1,0', this.data.sectionJ.PciLesions[0].BifurcationClassification),
+                    pdf.tab(),
+                    pdf.check('1,0,1', this.data.sectionJ.PciLesions[0].BifurcationClassification),
+                    pdf.tab(),
+                    pdf.check('0,1,1', this.data.sectionJ.PciLesions[0].BifurcationClassification)
+                  ),
+                  pdf.block(
+                    pdf.tab(3),
+                    pdf.check('1,0,0', this.data.sectionJ.PciLesions[0].BifurcationClassification),
+                    pdf.tab(),
+                    pdf.check('0,1,0', this.data.sectionJ.PciLesions[0].BifurcationClassification),
+                    pdf.tab(),
+                    pdf.check('0,0,1', this.data.sectionJ.PciLesions[0].BifurcationClassification)
+                  ),
+                  pdf.block(
+                    pdf.tab(),
+                    pdf.arrowIf(),
+                    ' Yes, ',
+                    pdf.field('Bifurcation Stenting'),
+                    pdf.tab(),
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].BifurcationStenting),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].BifurcationStenting)
+                  ),
+                  pdf.block(
+                    pdf.tab(2),
+                    pdf.arrowIf(),
+                    ' Yes, ',
+                    pdf.field('Stent Technique Strategy')
+                  ),
+                  pdf.block(
+                    pdf.tab(4),
+                    pdf.radio(
+                      'Provisional MB stenting (stent MB first)',
+                      this.data.sectionJ.PciLesions[0].StentTechniqueStrategy
+                    )
+                  ),
+                  pdf.block(
+                    pdf.tab(4),
+                    pdf.radio(
+                      'Provisional SB stenting (stent SB first)',
+                      this.data.sectionJ.PciLesions[0].StentTechniqueStrategy
+                    )
+                  ),
+                  pdf.block(pdf.tab(2), pdf.arrowIf(), ' Yes, ', pdf.field('Stent Technique')),
+                  pdf.block(
+                    pdf.tab(4),
+                    pdf.radio(
+                      'DK Crush (Double Kissing Crush)',
+                      this.data.sectionJ.PciLesions[0].StentTechnique
+                    )
+                  ),
+                  pdf.columns(
+                    { text: '', width: 36 },
+                    pdf.radio('Culotte', this.data.sectionJ.PciLesions[0].StentTechnique),
+                    pdf.radio('V stenting', this.data.sectionJ.PciLesions[0].StentTechnique)
+                  ),
+                  pdf.columns(
+                    { text: '', width: 36 },
+                    pdf.radio(
+                      'Modified T stenting',
+                      this.data.sectionJ.PciLesions[0].StentTechnique
+                    ),
+                    pdf.radio('T and Protusion', this.data.sectionJ.PciLesions[0].StentTechnique)
+                  ),
+                  pdf.columns(
+                    { text: '', width: 36 },
+                    pdf.radio('Kissing stenting', this.data.sectionJ.PciLesions[0].StentTechnique),
+                    pdf.radio('Dedicated stenting', this.data.sectionJ.PciLesions[0].StentTechnique)
+                  )
+                ),
+                pdf.stack(
+                  pdf.emptyLine(),
+                  pdf.block(
+                    pdf.field('Lesion in Graft', { annotation: '8015' }),
+                    pdf.tab(),
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].LesionGraft),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].LesionGraft)
+                  ),
+                  pdf.block(
+                    pdf.tab(),
+                    pdf.arrowIf(),
+                    ' Yes, ',
+                    pdf.field('Type of CABG Graft', { annotation: '8016' })
+                  ),
+                  pdf.block(
+                    pdf.tab(3),
+                    pdf.radio('LIMA', this.data.sectionJ.PciLesions[0].LesionGraftType),
+                    pdf.tab(),
+                    pdf.radio('Vein', this.data.sectionJ.PciLesions[0].LesionGraftType),
+                    pdf.tab(),
+                    pdf.radio('Other Artery', this.data.sectionJ.PciLesions[0].LesionGraftType)
+                  ),
+                  pdf.block(
+                    pdf.tab(),
+                    pdf.arrowIf(),
+                    ' Yes, ',
+                    pdf.field('Location in Graft', { annotation: '8017' })
+                  ),
+                  pdf.block(
+                    pdf.tab(3),
+                    pdf.radio('Aortic', this.data.sectionJ.PciLesions[0].LocGraft),
+                    pdf.tab(),
+                    pdf.radio('Body', this.data.sectionJ.PciLesions[0].LocGraft),
+                    pdf.tab(),
+                    pdf.radio('Distal', this.data.sectionJ.PciLesions[0].LocGraft)
+                  ),
+                  pdf.block(
+                    pdf.field('Navigate through Graft to Native Lesion', { annotation: '8018' }),
+                    pdf.space(),
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].NavGraftNatLes),
+                    pdf.space(2),
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].NavGraftNatLes)
                   ),
                   pdf.lineHalf(),
                   pdf.emptyLine(),
@@ -2983,176 +3151,67 @@ export class CathPciReport {
                     pdf.radio('TIMI-2', this.data.sectionJ.PciLesions[0].PostProcTIMI),
                     pdf.tab(),
                     pdf.radio('TIMI-3', this.data.sectionJ.PciLesions[0].PostProcTIMI)
+                  ),
+                  pdf.lineHalf(),
+                  pdf.emptyLine(),
+                  pdf.block(
+                    pdf.field('Final Adjuctive Balloon Angioplasty'),
+                    pdf.tab(),
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].FinalAdjBalAngioplasty),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].FinalAdjBalAngioplasty)
+                  ),
+                  pdf.block(
+                    pdf.tab(),
+                    pdf.arrowIf(),
+                    ' Yes, ',
+                    pdf.field('Proximal Optimization'),
+                    pdf.tab(),
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].ProxOptimize),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].ProxOptimize)
+                  ),
+                  pdf.block(
+                    pdf.tab(),
+                    pdf.arrowIf(),
+                    ' Yes, ',
+                    pdf.field('Final Kissing Balloon Inflation'),
+                    pdf.tab(),
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].FinalKissBalloon),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].FinalKissBalloon)
                   )
-                ),
+                )
+              ],
+              [
                 pdf.stack(
                   pdf.emptyLine(),
                   pdf.block(
-                    { text: 'If ', bold: true },
-                    ' PCI Indication⁷⁸²⁵ is STEMI or NSTE-ACS, ',
-                    pdf.field('Culprit Stenosis', { annotation: '8002' }),
+                    pdf.field('Final Adjuctive Balloon Angioplasty'),
                     pdf.tab(),
-                    pdf.radio('No', this.data.sectionJ.PciLesions[0].CulpritArtery),
-                    pdf.tab(),
-                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].CulpritArtery),
-                    pdf.tab(),
-                    pdf.radio('Unknown', this.data.sectionJ.PciLesions[0].CulpritArtery)
-                  ),
-                  pdf.lineHalf(),
-                  pdf.emptyLine(),
-                  pdf.block(
-                    pdf.field('Lesion in Graft', { annotation: '8015' }),
-                    pdf.tab(),
-                    pdf.radio('No', this.data.sectionJ.PciLesions[0].LesionGraft),
-                    pdf.tab(),
-                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].LesionGraft)
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].FinalAdjBalAngioplasty),
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].FinalAdjBalAngioplasty)
                   ),
                   pdf.block(
                     pdf.tab(),
                     pdf.arrowIf(),
                     ' Yes, ',
-                    pdf.field('Type of CABG Graft', { annotation: '8016' })
-                  ),
-                  pdf.block(
-                    pdf.tab(3),
-                    pdf.radio('LIMA', this.data.sectionJ.PciLesions[0].LesionGraftType),
+                    pdf.field('Proximal Optimization'),
                     pdf.tab(),
-                    pdf.radio('Vein', this.data.sectionJ.PciLesions[0].LesionGraftType),
-                    pdf.tab(),
-                    pdf.radio('Other Artery', this.data.sectionJ.PciLesions[0].LesionGraftType)
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].ProxOptimize),
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].ProxOptimize)
                   ),
                   pdf.block(
                     pdf.tab(),
                     pdf.arrowIf(),
                     ' Yes, ',
-                    pdf.field('Location in Graft', { annotation: '8017' })
-                  ),
-                  pdf.block(
-                    pdf.tab(3),
-                    pdf.radio('Aortic', this.data.sectionJ.PciLesions[0].LocGraft),
+                    pdf.field('Final Kissing Balloon Inflation'),
                     pdf.tab(),
-                    pdf.radio('Body', this.data.sectionJ.PciLesions[0].LocGraft),
-                    pdf.tab(),
-                    pdf.radio('Distal', this.data.sectionJ.PciLesions[0].LocGraft)
-                  ),
-                  pdf.block(
-                    pdf.field('Navigate through Graft to Native Lesion', { annotation: '8018' }),
-                    pdf.space(),
-                    pdf.radio('No', this.data.sectionJ.PciLesions[0].NavGraftNatLes),
-                    pdf.space(2),
-                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].NavGraftNatLes)
-                  ),
-                  pdf.lineHalf(),
-                  pdf.emptyLine(),
-                  pdf.block(
-                    pdf.field('Lesion Complexity', { annotation: '8019' }),
-                    pdf.tab(),
-                    pdf.radio('Non-High/Non-C', this.data.sectionJ.PciLesions[0].LesionComplexity),
-                    pdf.tab(),
-                    pdf.radio('High/C', this.data.sectionJ.PciLesions[0].LesionComplexity)
-                  ),
-                  pdf.block(
-                    pdf.field('Lesion Length', { annotation: '8020' }),
-                    pdf.input(this.data.sectionJ.PciLesions[0].LesionLength),
-                    ' mm'
-                  ),
-                  pdf.block(
-                    pdf.field('Severe Calcification', { annotation: '8021' }),
-                    pdf.tab(),
-                    pdf.radio('No', this.data.sectionJ.PciLesions[0].SevereCalcification),
-                    pdf.tab(),
-                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].SevereCalcification)
-                  ),
-                  pdf.lineHalf(),
-                  pdf.emptyLine(),
-                  pdf.block(
-                    pdf.field('Bifurcation Lesion'),
-                    pdf.tab(),
-                    pdf.radio('No', this.data.sectionJ.PciLesions[0].BifurcationLesion),
-                    pdf.tab(),
-                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].BifurcationLesion)
-                  ),
-                  pdf.block(
-                    pdf.tab(),
-                    pdf.arrowIf(),
-                    ' Yes, ',
-                    pdf.field('Bifurcation Classification')
-                  ),
-                  pdf.block(
-                    pdf.tab(3),
-                    pdf.check('1,1,1', this.data.sectionJ.PciLesions[0].BifurcationClassification),
-                    pdf.tab(),
-                    pdf.check('1,1,0', this.data.sectionJ.PciLesions[0].BifurcationClassification),
-                    pdf.tab(),
-                    pdf.check('1,0,1', this.data.sectionJ.PciLesions[0].BifurcationClassification),
-                    pdf.tab(),
-                    pdf.check('0,1,1', this.data.sectionJ.PciLesions[0].BifurcationClassification)
-                  ),
-                  pdf.block(
-                    pdf.tab(3),
-                    pdf.check('1,0,0', this.data.sectionJ.PciLesions[0].BifurcationClassification),
-                    pdf.tab(),
-                    pdf.check('0,1,0', this.data.sectionJ.PciLesions[0].BifurcationClassification),
-                    pdf.tab(),
-                    pdf.check('0,0,1', this.data.sectionJ.PciLesions[0].BifurcationClassification)
-                  ),
-                  pdf.block(
-                    pdf.tab(),
-                    pdf.arrowIf(),
-                    ' Yes, ',
-                    pdf.field('Bifurcation Stenting'),
-                    pdf.tab(),
-                    pdf.radio('No', this.data.sectionJ.PciLesions[0].BifurcationStenting),
-                    pdf.tab(),
-                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].BifurcationStenting)
-                  ),
-                  pdf.block(
-                    pdf.tab(2),
-                    pdf.arrowIf(),
-                    ' Yes, ',
-                    pdf.field('Stent Technique Strategy')
-                  ),
-                  pdf.block(
-                    pdf.tab(4),
-                    pdf.radio(
-                      'Provisional MB stenting (stent MB first)',
-                      this.data.sectionJ.PciLesions[0].StentTechniqueStrategy
-                    )
-                  ),
-                  pdf.block(
-                    pdf.tab(4),
-                    pdf.radio(
-                      'Provisional SB stenting (stent SB first)',
-                      this.data.sectionJ.PciLesions[0].StentTechniqueStrategy
-                    )
-                  ),
-                  pdf.block(pdf.tab(2), pdf.arrowIf(), ' Yes, ', pdf.field('Stent Technique')),
-                  pdf.block(
-                    pdf.tab(4),
-                    pdf.radio(
-                      'DK Crush (Double Kissing Crush)',
-                      this.data.sectionJ.PciLesions[0].StentTechnique
-                    )
-                  ),
-                  pdf.columns(
-                    { text: '', width: 36 },
-                    pdf.radio('Culotte', this.data.sectionJ.PciLesions[0].StentTechnique),
-                    pdf.radio('V stenting', this.data.sectionJ.PciLesions[0].StentTechnique)
-                  ),
-                  pdf.columns(
-                    { text: '', width: 36 },
-                    pdf.radio(
-                      'Modified T stenting',
-                      this.data.sectionJ.PciLesions[0].StentTechnique
-                    ),
-                    pdf.radio('T and Protusion', this.data.sectionJ.PciLesions[0].StentTechnique)
-                  ),
-                  pdf.columns(
-                    { text: '', width: 36 },
-                    pdf.radio('Kissing stenting', this.data.sectionJ.PciLesions[0].StentTechnique),
-                    pdf.radio('Dedicated stenting', this.data.sectionJ.PciLesions[0].StentTechnique)
+                    pdf.radio('No', this.data.sectionJ.PciLesions[0].FinalKissBalloon),
+                    pdf.radio('Yes', this.data.sectionJ.PciLesions[0].FinalKissBalloon)
                   )
-                )
+                ),
+                ''
               ]
             ]
           }
