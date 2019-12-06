@@ -5,6 +5,7 @@ const maxNvLength = 5;
 const maxGraftLength = 4;
 const maxPciLength = 4;
 const maxDeviceLength = 10;
+const maxFollowUpLength = 1;
 
 export class CathPciReport {
   data: any = null;
@@ -30,25 +31,25 @@ export class CathPciReport {
               }
             ],
             // page 1
-            // ...this.sectionA(),
-            // ...this.sectionB(),
-            // ...this.sectionC(),
-            // // page 2
-            // ...this.sectionD(),
-            // // page 3
-            // ...this.sectionE(),
-            // ...this.sectionF(),
-            // // page 4
-            // ...this.sectionG(),
-            // // page 5
-            // ...this.sectionH(),
-            // // page 6-7
-            // ...this.sectionI(),
-            // // page 8
-            // ...this.sectionJ(),
-            // ...this.sectionK(),
+            ...this.sectionA(),
+            ...this.sectionB(),
+            ...this.sectionC(),
+            // page 2
+            ...this.sectionD(),
+            // page 3
+            ...this.sectionE(),
+            ...this.sectionF(),
+            // page 4
+            ...this.sectionG(),
+            // page 5
+            ...this.sectionH(),
+            // page 6-7
+            ...this.sectionI(),
+            // page 8
+            ...this.sectionJ(),
+            ...this.sectionK(),
             // page 9
-            // ...this.sectionL(),
+            ...this.sectionL(),
             // page 10
             ...this.sectionM()
           ]
@@ -3754,7 +3755,7 @@ export class CathPciReport {
 
   private sectionL(): pdfMake.Content[][] {
     return [
-      [pdf.blockStyle({ pageBreak: 'before' }, pdf.section('L. DISCHARGE'))],
+      [pdf.blockStyle({ style: 'section', pageBreak: 'before' }, pdf.section('L. DISCHARGE'))],
       [
         pdf.stackStyle(
           { border: [true, true, true, false] },
@@ -4787,8 +4788,8 @@ export class CathPciReport {
     return [
       [
         pdf.blockStyle(
-          // { style: 'section', pageBreak: 'before' },
-          { style: 'section' },
+          { style: 'section', pageBreak: 'before' },
+          // { style: 'section' },
           pdf.section('M. FOLLOW-UP'),
           pdf.text(
             ' (30 Days Post Index PCI Procedure: -7+14 days AND 1 Year Post Index PCI Procedure: +/-60 days)',
@@ -4796,35 +4797,59 @@ export class CathPciReport {
           )
         )
       ],
+      ...this.getFollowUp()
+    ];
+  }
+
+  private getFollowUp() {
+    const output = [];
+    const followUpLength = this.data.sectionM.FollowUps.length;
+    const maxLength = followUpLength < maxFollowUpLength ? maxFollowUpLength : followUpLength;
+
+    for (let index = 0; index < maxLength; index++) {
+      let fu = null;
+      if (index < followUpLength) {
+        fu = this.data.sectionM.FollowUps[index];
+      }
+      output.push(...this.followUp(fu, index === 0));
+    }
+    return output;
+  }
+
+  private followUp(data: any, fistPage: boolean) {
+    return [
+      [
+        pdf.text('FOLLOW UP PERIOD: __________', { style: 'subSection', pageBreak: fistPage ? null : 'before'})
+      ],
       [
         pdf.stackStyle(
           { border: [true, true, true, false] },
           pdf.emptyLine(),
           pdf.block(
             pdf.field('Assessment Date', { annotation: '11000' }),
-            pdf.date(this.data.sectionM.FollowUps[0].FU_AssessmentDate)
+            pdf.date(data ? data.FU_AssessmentDate : null)
           ),
           pdf.field('Method(s) to Determine Status', { annotation: '11003' }),
           pdf.columns(
             pdf.text('', { width: 26 }),
             pdf.stackStyle(
               { width: 100 },
-              pdf.check('Office Visit', this.data.sectionM.FollowUps[0].FU_Method),
-              pdf.check('Phone Call', this.data.sectionM.FollowUps[0].FU_Method)
+              pdf.check('Office Visit', data ? data.FU_Method : null),
+              pdf.check('Phone Call', data ? data.FU_Method : null)
             ),
             pdf.stack(
-              pdf.check('Medical Records', this.data.sectionM.FollowUps[0].FU_Method),
+              pdf.check('Medical Records', data ? data.FU_Method : null),
               pdf.check(
                 'Social Security Death Master File',
-                this.data.sectionM.FollowUps[0].FU_Method
+                data ? data.FU_Method : null
               )
             ),
             pdf.stack(
-              pdf.check('Letter from Medical Provider', this.data.sectionM.FollowUps[0].FU_Method),
+              pdf.check('Letter from Medical Provider', data ? data.FU_Method : null),
               pdf.block(
-                pdf.check('Hospitalized', this.data.sectionM.FollowUps[0].FU_Method),
+                pdf.check('Hospitalized', data ? data.FU_Method : null),
                 pdf.tab(4),
-                pdf.check('Other', this.data.sectionM.FollowUps[0].FU_Method)
+                pdf.check('Other', data ? data.FU_Method : null)
               )
             )
           ),
@@ -4833,11 +4858,11 @@ export class CathPciReport {
           pdf.block(
             pdf.field('Follow-Up Status', { annotation: '11004' }),
             pdf.tab(),
-            pdf.radio('Alive', this.data.sectionM.FollowUps[0].FU_Status),
+            pdf.radio('Alive', data ? data.FU_Status : null),
             pdf.tab(),
-            pdf.radio('Deceased', this.data.sectionM.FollowUps[0].FU_Status),
+            pdf.radio('Deceased', data ? data.FU_Status : null),
             pdf.tab(),
-            pdf.radio('Lost to Follow-up', this.data.sectionM.FollowUps[0].FU_Status)
+            pdf.radio('Lost to Follow-up', data ? data.FU_Status : null)
           ),
           pdf.block(
             pdf.tab(),
@@ -4847,13 +4872,13 @@ export class CathPciReport {
           ),
           pdf.block(
             pdf.tab(4),
-            pdf.radio('Typical Angina', this.data.sectionM.FollowUps[0].FU_CPSxAssess),
+            pdf.radio('Typical Angina', data ? data.FU_CPSxAssess : null),
             pdf.tab(2),
-            pdf.radio('Atypical angina', this.data.sectionM.FollowUps[0].FU_CPSxAssess),
+            pdf.radio('Atypical angina', data ? data.FU_CPSxAssess : null),
             pdf.tab(2),
-            pdf.radio('Non-anginal Chest Pain', this.data.sectionM.FollowUps[0].FU_CPSxAssess),
+            pdf.radio('Non-anginal Chest Pain', data ? data.FU_CPSxAssess : null),
             pdf.tab(2),
-            pdf.radio('Asymptomatic', this.data.sectionM.FollowUps[0].FU_CPSxAssess)
+            pdf.radio('Asymptomatic', data ? data.FU_CPSxAssess : null)
           )
         )
       ],
@@ -4866,7 +4891,7 @@ export class CathPciReport {
             pdf.arrowIf(),
             ' Deceased, ',
             pdf.field('Date of Death', { annotation: '11006' }),
-            pdf.date(this.data.sectionM.FollowUps[0].FU_DeathDate)
+            pdf.date(data ? data.FU_DeathDate : null)
           ),
           pdf.block(
             pdf.tab(),
@@ -4880,41 +4905,41 @@ export class CathPciReport {
               { width: 200 },
               pdf.radio(
                 'Acute myocardial infarction',
-                this.data.sectionM.FollowUps[0].FU_DeathCause
+                data ? data.FU_DeathCause : null
               ),
-              pdf.radio('Sudden cardiac death', this.data.sectionM.FollowUps[0].FU_DeathCause),
-              pdf.radio('Heart failure', this.data.sectionM.FollowUps[0].FU_DeathCause),
-              pdf.radio('Cardiovascular procedure', this.data.sectionM.FollowUps[0].FU_DeathCause),
-              pdf.radio('Cardiovascular hemorrhage', this.data.sectionM.FollowUps[0].FU_DeathCause),
+              pdf.radio('Sudden cardiac death', data ? data.FU_DeathCause : null),
+              pdf.radio('Heart failure', data ? data.FU_DeathCause : null),
+              pdf.radio('Cardiovascular procedure', data ? data.FU_DeathCause : null),
+              pdf.radio('Cardiovascular hemorrhage', data ? data.FU_DeathCause : null),
               pdf.radio(
                 'Other cardiovascular reason',
-                this.data.sectionM.FollowUps[0].FU_DeathCause
+                data ? data.FU_DeathCause : null
               ),
               pdf.radio(
                 'Non-cardiovascular procedure or surgery',
-                this.data.sectionM.FollowUps[0].FU_DeathCause
+                data ? data.FU_DeathCause : null
               )
             ),
             pdf.stackStyle(
               { width: 120 },
-              pdf.radio('Pulmonary', this.data.sectionM.FollowUps[0].FU_DeathCause),
-              pdf.radio('Neurological', this.data.sectionM.FollowUps[0].FU_DeathCause),
-              pdf.radio('Hepatobiliary', this.data.sectionM.FollowUps[0].FU_DeathCause),
-              pdf.radio('Pancreatic', this.data.sectionM.FollowUps[0].FU_DeathCause),
-              pdf.radio('Renal', this.data.sectionM.FollowUps[0].FU_DeathCause),
-              pdf.radio('Gastrointestinal', this.data.sectionM.FollowUps[0].FU_DeathCause),
-              pdf.radio('Suicide', this.data.sectionM.FollowUps[0].FU_DeathCause)
+              pdf.radio('Pulmonary', data ? data.FU_DeathCause : null),
+              pdf.radio('Neurological', data ? data.FU_DeathCause : null),
+              pdf.radio('Hepatobiliary', data ? data.FU_DeathCause : null),
+              pdf.radio('Pancreatic', data ? data.FU_DeathCause : null),
+              pdf.radio('Renal', data ? data.FU_DeathCause : null),
+              pdf.radio('Gastrointestinal', data ? data.FU_DeathCause : null),
+              pdf.radio('Suicide', data ? data.FU_DeathCause : null)
             ),
             pdf.stack(
-              pdf.radio('Trauma', this.data.sectionM.FollowUps[0].FU_DeathCause),
-              pdf.radio('Stroke', this.data.sectionM.FollowUps[0].FU_DeathCause),
-              pdf.radio('Malignancy', this.data.sectionM.FollowUps[0].FU_DeathCause),
-              pdf.radio('Hemorrhage', this.data.sectionM.FollowUps[0].FU_DeathCause),
-              pdf.radio('Infection', this.data.sectionM.FollowUps[0].FU_DeathCause),
-              pdf.radio('Inflammatory/Immunologic', this.data.sectionM.FollowUps[0].FU_DeathCause),
+              pdf.radio('Trauma', data ? data.FU_DeathCause : null),
+              pdf.radio('Stroke', data ? data.FU_DeathCause : null),
+              pdf.radio('Malignancy', data ? data.FU_DeathCause : null),
+              pdf.radio('Hemorrhage', data ? data.FU_DeathCause : null),
+              pdf.radio('Infection', data ? data.FU_DeathCause : null),
+              pdf.radio('Inflammatory/Immunologic', data ? data.FU_DeathCause : null),
               pdf.radio(
                 'Other non-cardiovascular reason',
-                this.data.sectionM.FollowUps[0].FU_DeathCause
+                data ? data.FU_DeathCause : null
               )
             )
           )
@@ -4967,12 +4992,12 @@ export class CathPciReport {
                   pdf.text('Bleeding Event', { style: 'tableCell' }),
                   pdf.blockStyle(
                     { style: 'tableCell', alignment: 'center' },
-                    pdf.radio('No', this.data.sectionM.FollowUps[0].M_BleedingEvent),
+                    pdf.radio('No', data ? data.M_BleedingEvent : null),
                     pdf.tab(),
-                    pdf.radio('Yes', this.data.sectionM.FollowUps[0].M_BleedingEvent)
+                    pdf.radio('Yes', data ? data.M_BleedingEvent : null)
                   ),
                   '',
-                  pdf.prop(pdf.date(this.data.sectionM.FollowUps[0].M_BleedingEventDT), {
+                  pdf.prop(pdf.date(data ? data.M_BleedingEventDT : null), {
                     style: 'tableCell',
                     alignment: 'center'
                   })
@@ -4981,12 +5006,12 @@ export class CathPciReport {
                   pdf.text('CABG: Bypass of stented lesion', { style: 'tableCell' }),
                   pdf.blockStyle(
                     { style: 'tableCell', alignment: 'center' },
-                    pdf.radio('No', this.data.sectionM.FollowUps[0].M_CABGStent),
+                    pdf.radio('No', data ? data.M_CABGStent : null),
                     pdf.tab(),
-                    pdf.radio('Yes', this.data.sectionM.FollowUps[0].M_CABGStent)
+                    pdf.radio('Yes', data ? data.M_CABGStent : null)
                   ),
                   '',
-                  pdf.prop(pdf.date(this.data.sectionM.FollowUps[0].M_CABGStentDT), {
+                  pdf.prop(pdf.date(data ? data.M_CABGStentDT : null), {
                     style: 'tableCell',
                     alignment: 'center'
                   })
@@ -4995,12 +5020,12 @@ export class CathPciReport {
                   pdf.text('CABG: Bypass of non-stented lesion', { style: 'tableCell' }),
                   pdf.blockStyle(
                     { style: 'tableCell', alignment: 'center' },
-                    pdf.radio('No', this.data.sectionM.FollowUps[0].M_CABGNonStent),
+                    pdf.radio('No', data ? data.M_CABGNonStent : null),
                     pdf.tab(),
-                    pdf.radio('Yes', this.data.sectionM.FollowUps[0].M_CABGNonStent)
+                    pdf.radio('Yes', data ? data.M_CABGNonStent : null)
                   ),
                   '',
-                  pdf.prop(pdf.date(this.data.sectionM.FollowUps[0].M_CABGNonStentDT), {
+                  pdf.prop(pdf.date(data ? data.M_CABGNonStentDT : null), {
                     style: 'tableCell',
                     alignment: 'center'
                   })
@@ -5009,12 +5034,12 @@ export class CathPciReport {
                   pdf.text('Myocardial Infarction: NSTEMI', { style: 'tableCell' }),
                   pdf.blockStyle(
                     { style: 'tableCell', alignment: 'center' },
-                    pdf.radio('No', this.data.sectionM.FollowUps[0].M_NSTEMI),
+                    pdf.radio('No', data ? data.M_NSTEMI : null),
                     pdf.tab(),
-                    pdf.radio('Yes', this.data.sectionM.FollowUps[0].M_NSTEMI)
+                    pdf.radio('Yes', data ? data.M_NSTEMI : null)
                   ),
                   '',
-                  pdf.prop(pdf.date(this.data.sectionM.FollowUps[0].M_NSTEMIDT), {
+                  pdf.prop(pdf.date(data ? data.M_NSTEMIDT : null), {
                     style: 'tableCell',
                     alignment: 'center'
                   })
@@ -5023,12 +5048,12 @@ export class CathPciReport {
                   pdf.text('Myocardial Infarction: Q-wave', { style: 'tableCell' }),
                   pdf.blockStyle(
                     { style: 'tableCell', alignment: 'center' },
-                    pdf.radio('No', this.data.sectionM.FollowUps[0].M_Qwave),
+                    pdf.radio('No', data ? data.M_Qwave : null),
                     pdf.tab(),
-                    pdf.radio('Yes', this.data.sectionM.FollowUps[0].M_Qwave)
+                    pdf.radio('Yes', data ? data.M_Qwave : null)
                   ),
                   '',
-                  pdf.prop(pdf.date(this.data.sectionM.FollowUps[0].M_QwaveDT), {
+                  pdf.prop(pdf.date(data ? data.M_QwaveDT : null), {
                     style: 'tableCell',
                     alignment: 'center'
                   })
@@ -5037,12 +5062,12 @@ export class CathPciReport {
                   pdf.text('Myocardial Infarction: STEMI', { style: 'tableCell' }),
                   pdf.blockStyle(
                     { style: 'tableCell', alignment: 'center' },
-                    pdf.radio('No', this.data.sectionM.FollowUps[0].M_STEMI),
+                    pdf.radio('No', data ? data.M_STEMI : null),
                     pdf.tab(),
-                    pdf.radio('Yes', this.data.sectionM.FollowUps[0].M_STEMI)
+                    pdf.radio('Yes', data ? data.M_STEMI : null)
                   ),
                   '',
-                  pdf.prop(pdf.date(this.data.sectionM.FollowUps[0].M_STEMIDT), {
+                  pdf.prop(pdf.date(data ? data.M_STEMIDT : null), {
                     style: 'tableCell',
                     alignment: 'center'
                   })
@@ -5051,12 +5076,12 @@ export class CathPciReport {
                   pdf.text('Myocardial Infarction: Type Unknown', { style: 'tableCell' }),
                   pdf.blockStyle(
                     { style: 'tableCell', alignment: 'center' },
-                    pdf.radio('No', this.data.sectionM.FollowUps[0].M_MIUnknown),
+                    pdf.radio('No', data ? data.M_MIUnknown : null),
                     pdf.tab(),
-                    pdf.radio('Yes', this.data.sectionM.FollowUps[0].M_MIUnknown)
+                    pdf.radio('Yes', data ? data.M_MIUnknown : null)
                   ),
                   '',
-                  pdf.prop(pdf.date(this.data.sectionM.FollowUps[0].M_MIUnknownDT), {
+                  pdf.prop(pdf.date(data ? data.M_MIUnknownDT : null), {
                     style: 'tableCell',
                     alignment: 'center'
                   })
@@ -5065,12 +5090,12 @@ export class CathPciReport {
                   pdf.text('PCI of non-stented lesion', { style: 'tableCell' }),
                   pdf.blockStyle(
                     { style: 'tableCell', alignment: 'center' },
-                    pdf.radio('No', this.data.sectionM.FollowUps[0].M_PCINonStent),
+                    pdf.radio('No', data ? data.M_PCINonStent : null),
                     pdf.tab(),
-                    pdf.radio('Yes', this.data.sectionM.FollowUps[0].M_PCINonStent)
+                    pdf.radio('Yes', data ? data.M_PCINonStent : null)
                   ),
                   '',
-                  pdf.prop(pdf.date(this.data.sectionM.FollowUps[0].M_PCINonStentDT), {
+                  pdf.prop(pdf.date(data ? data.M_PCINonStentDT : null), {
                     style: 'tableCell',
                     alignment: 'center'
                   })
@@ -5079,12 +5104,12 @@ export class CathPciReport {
                   pdf.text('PCI of stented lesion', { style: 'tableCell' }),
                   pdf.blockStyle(
                     { style: 'tableCell', alignment: 'center' },
-                    pdf.radio('No', this.data.sectionM.FollowUps[0].M_PCIStent),
+                    pdf.radio('No', data ? data.M_PCIStent : null),
                     pdf.tab(),
-                    pdf.radio('Yes', this.data.sectionM.FollowUps[0].M_PCIStent)
+                    pdf.radio('Yes', data ? data.M_PCIStent : null)
                   ),
                   '',
-                  pdf.prop(pdf.date(this.data.sectionM.FollowUps[0].M_PCIStentDT), {
+                  pdf.prop(pdf.date(data ? data.M_PCIStentDT : null), {
                     style: 'tableCell',
                     alignment: 'center'
                   })
@@ -5093,12 +5118,12 @@ export class CathPciReport {
                   pdf.text('Readmission: Non-PCI Related', { style: 'tableCell' }),
                   pdf.blockStyle(
                     { style: 'tableCell', alignment: 'center' },
-                    pdf.radio('No', this.data.sectionM.FollowUps[0].M_Readmission),
+                    pdf.radio('No', data ? data.M_Readmission : null),
                     pdf.tab(),
-                    pdf.radio('Yes', this.data.sectionM.FollowUps[0].M_Readmission)
+                    pdf.radio('Yes', data ? data.M_Readmission : null)
                   ),
                   '',
-                  pdf.prop(pdf.date(this.data.sectionM.FollowUps[0].M_Readmission), {
+                  pdf.prop(pdf.date(data ? data.M_Readmission : null), {
                     style: 'tableCell',
                     alignment: 'center'
                   })
@@ -5107,12 +5132,12 @@ export class CathPciReport {
                   pdf.text('Stroke – Hemorrhagic', { style: 'tableCell' }),
                   pdf.blockStyle(
                     { style: 'tableCell', alignment: 'center' },
-                    pdf.radio('No', this.data.sectionM.FollowUps[0].M_StrokeHemorrhage),
+                    pdf.radio('No', data ? data.M_StrokeHemorrhage : null),
                     pdf.tab(),
-                    pdf.radio('Yes', this.data.sectionM.FollowUps[0].M_StrokeHemorrhage)
+                    pdf.radio('Yes', data ? data.M_StrokeHemorrhage : null)
                   ),
                   '',
-                  pdf.prop(pdf.date(this.data.sectionM.FollowUps[0].M_StrokeHemorrhageDT), {
+                  pdf.prop(pdf.date(data ? data.M_StrokeHemorrhageDT : null), {
                     style: 'tableCell',
                     alignment: 'center'
                   })
@@ -5121,12 +5146,12 @@ export class CathPciReport {
                   pdf.text('Stroke – Ischemic', { style: 'tableCell' }),
                   pdf.blockStyle(
                     { style: 'tableCell', alignment: 'center' },
-                    pdf.radio('No', this.data.sectionM.FollowUps[0].M_StrokeIschemic),
+                    pdf.radio('No', data ? data.M_StrokeIschemic : null),
                     pdf.tab(),
-                    pdf.radio('Yes', this.data.sectionM.FollowUps[0].M_StrokeIschemic)
+                    pdf.radio('Yes', data ? data.M_StrokeIschemic : null)
                   ),
                   '',
-                  pdf.prop(pdf.date(this.data.sectionM.FollowUps[0].M_StrokeIschemicDT), {
+                  pdf.prop(pdf.date(data ? data.M_StrokeIschemicDT : null), {
                     style: 'tableCell',
                     alignment: 'center'
                   })
@@ -5135,12 +5160,12 @@ export class CathPciReport {
                   pdf.text('Stroke – Undetermined', { style: 'tableCell' }),
                   pdf.blockStyle(
                     { style: 'tableCell', alignment: 'center' },
-                    pdf.radio('No', this.data.sectionM.FollowUps[0].M_StrokeUndetermined),
+                    pdf.radio('No', data ? data.M_StrokeUndetermined : null),
                     pdf.tab(),
-                    pdf.radio('Yes', this.data.sectionM.FollowUps[0].M_StrokeUndetermined)
+                    pdf.radio('Yes', data ? data.M_StrokeUndetermined : null)
                   ),
                   '',
-                  pdf.prop(pdf.date(this.data.sectionM.FollowUps[0].M_StrokeUndeterminedDT), {
+                  pdf.prop(pdf.date(data ? data.M_StrokeUndeterminedDT : null), {
                     style: 'tableCell',
                     alignment: 'center'
                   })
@@ -5149,12 +5174,12 @@ export class CathPciReport {
                   pdf.text('Thrombosis in stented lesion', { style: 'tableCell' }),
                   pdf.blockStyle(
                     { style: 'tableCell', alignment: 'center' },
-                    pdf.radio('No', this.data.sectionM.FollowUps[0].M_ThrombosisStent),
+                    pdf.radio('No', data ? data.M_ThrombosisStent : null),
                     pdf.tab(),
-                    pdf.radio('Yes', this.data.sectionM.FollowUps[0].M_ThrombosisStent)
+                    pdf.radio('Yes', data ? data.M_ThrombosisStent : null)
                   ),
                   '',
-                  pdf.prop(pdf.date(this.data.sectionM.FollowUps[0].M_ThrombosisStentDT), {
+                  pdf.prop(pdf.date(data ? data.M_ThrombosisStentDT : null), {
                     style: 'tableCell',
                     alignment: 'center'
                   })
@@ -5163,12 +5188,12 @@ export class CathPciReport {
                   pdf.text('Thrombosis in non-stented lesion', { style: 'tableCell' }),
                   pdf.blockStyle(
                     { style: 'tableCell', alignment: 'center' },
-                    pdf.radio('No', this.data.sectionM.FollowUps[0].M_ThrombosisNonStent),
+                    pdf.radio('No', data ? data.M_ThrombosisNonStent : null),
                     pdf.tab(),
-                    pdf.radio('Yes', this.data.sectionM.FollowUps[0].M_ThrombosisNonStent)
+                    pdf.radio('Yes', data ? data.M_ThrombosisNonStent : null)
                   ),
                   '',
-                  pdf.prop(pdf.date(this.data.sectionM.FollowUps[0].M_ThrombosisNonStentDT), {
+                  pdf.prop(pdf.date(data ? data.M_ThrombosisNonStentDT : null), {
                     style: 'tableCell',
                     alignment: 'center'
                   })
@@ -5264,35 +5289,35 @@ export class CathPciReport {
                 [
                   pdf.text('Antiplatelet', { style: 'medCell', rowSpan: 2, margin: [0, 7, 0, 0] }),
                   pdf.text('Aspirin', { style: 'tableCell' }),
-                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_Aspirin, {
+                  pdf.radio('Yes - Prescribed', data ? data.FU_Aspirin : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_Aspirin, {
+                  pdf.radio('No - No Reason', data ? data.FU_Aspirin : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_Aspirin, {
+                  pdf.radio('No - Medical Reason', data ? data.FU_Aspirin : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_Aspirin, {
+                  pdf.radio('No - Patient Reason', data ? data.FU_Aspirin : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_AspirinRN, {
+                  pdf.radio('Cost', data ? data.FU_AspirinRN : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
                   pdf.radio(
                     'Alternative Therapy Preferred',
-                    this.data.sectionM.FollowUps[0].FU_AspirinRN,
+                    data ? data.FU_AspirinRN : null,
                     {
                       alias: '',
                       style: 'radioInTable'
                     }
                   ),
-                  pdf.radio('Negative Side Effect', this.data.sectionM.FollowUps[0].FU_AspirinRN, {
+                  pdf.radio('Negative Side Effect', data ? data.FU_AspirinRN : null, {
                     alias: '',
                     style: 'radioInTable'
                   })
@@ -5300,29 +5325,29 @@ export class CathPciReport {
                 [
                   '',
                   pdf.text('Vorapaxar', { style: 'tableCell' }),
-                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_Vorapaxar, {
+                  pdf.radio('Yes - Prescribed', data ? data.FU_Vorapaxar : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_Vorapaxar, {
+                  pdf.radio('No - No Reason', data ? data.FU_Vorapaxar : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_Vorapaxar, {
+                  pdf.radio('No - Medical Reason', data ? data.FU_Vorapaxar : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_Vorapaxar, {
+                  pdf.radio('No - Patient Reason', data ? data.FU_Vorapaxar : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_VorapaxarRN, {
+                  pdf.radio('Cost', data ? data.FU_VorapaxarRN : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
                   pdf.radio(
                     'Alternative Therapy Preferred',
-                    this.data.sectionM.FollowUps[0].FU_VorapaxarRN,
+                    data ? data.FU_VorapaxarRN : null,
                     {
                       alias: '',
                       style: 'radioInTable'
@@ -5330,7 +5355,7 @@ export class CathPciReport {
                   ),
                   pdf.radio(
                     'Negative Side Effect',
-                    this.data.sectionM.FollowUps[0].FU_VorapaxarRN,
+                    data ? data.FU_VorapaxarRN : null,
                     {
                       alias: '',
                       style: 'radioInTable'
@@ -5344,29 +5369,29 @@ export class CathPciReport {
                     margin: [0, 18, 0, 0]
                   }),
                   pdf.text('Clopidogrel', { style: 'tableCell' }),
-                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_Clopidogrel, {
+                  pdf.radio('Yes - Prescribed', data ? data.FU_Clopidogrel : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_Clopidogrel, {
+                  pdf.radio('No - No Reason', data ? data.FU_Clopidogrel : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_Clopidogrel, {
+                  pdf.radio('No - Medical Reason', data ? data.FU_Clopidogrel : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_Clopidogrel, {
+                  pdf.radio('No - Patient Reason', data ? data.FU_Clopidogrel : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_ClopidogrelRN, {
+                  pdf.radio('Cost', data ? data.FU_ClopidogrelRN : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
                   pdf.radio(
                     'Alternative Therapy Preferred',
-                    this.data.sectionM.FollowUps[0].FU_ClopidogrelRN,
+                    data ? data.FU_ClopidogrelRN : null,
                     {
                       alias: '',
                       style: 'radioInTable'
@@ -5374,7 +5399,7 @@ export class CathPciReport {
                   ),
                   pdf.radio(
                     'Negative Side Effect',
-                    this.data.sectionM.FollowUps[0].FU_ClopidogrelRN,
+                    data ? data.FU_ClopidogrelRN : null,
                     {
                       alias: '',
                       style: 'radioInTable'
@@ -5384,29 +5409,29 @@ export class CathPciReport {
                 [
                   '',
                   pdf.text('Prasugrel', { style: 'tableCell' }),
-                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_Prasugrel, {
+                  pdf.radio('Yes - Prescribed', data ? data.FU_Prasugrel : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_Prasugrel, {
+                  pdf.radio('No - No Reason', data ? data.FU_Prasugrel : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_Prasugrel, {
+                  pdf.radio('No - Medical Reason', data ? data.FU_Prasugrel : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_Prasugrel, {
+                  pdf.radio('No - Patient Reason', data ? data.FU_Prasugrel : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_PrasugrelRN, {
+                  pdf.radio('Cost', data ? data.FU_PrasugrelRN : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
                   pdf.radio(
                     'Alternative Therapy Preferred',
-                    this.data.sectionM.FollowUps[0].FU_PrasugrelRN,
+                    data ? data.FU_PrasugrelRN : null,
                     {
                       alias: '',
                       style: 'radioInTable'
@@ -5414,7 +5439,7 @@ export class CathPciReport {
                   ),
                   pdf.radio(
                     'Negative Side Effect',
-                    this.data.sectionM.FollowUps[0].FU_PrasugrelRN,
+                    data ? data.FU_PrasugrelRN : null,
                     {
                       alias: '',
                       style: 'radioInTable'
@@ -5424,29 +5449,29 @@ export class CathPciReport {
                 [
                   '',
                   pdf.text('Ticagrelor', { style: 'tableCell' }),
-                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_Ticagrelor, {
+                  pdf.radio('Yes - Prescribed', data ? data.FU_Ticagrelor : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_Ticagrelor, {
+                  pdf.radio('No - No Reason', data ? data.FU_Ticagrelor : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_Ticagrelor, {
+                  pdf.radio('No - Medical Reason', data ? data.FU_Ticagrelor : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_Ticagrelor, {
+                  pdf.radio('No - Patient Reason', data ? data.FU_Ticagrelor : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_TicagrelorRN, {
+                  pdf.radio('Cost', data ? data.FU_TicagrelorRN : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
                   pdf.radio(
                     'Alternative Therapy Preferred',
-                    this.data.sectionM.FollowUps[0].FU_TicagrelorRN,
+                    data ? data.FU_TicagrelorRN : null,
                     {
                       alias: '',
                       style: 'radioInTable'
@@ -5454,7 +5479,7 @@ export class CathPciReport {
                   ),
                   pdf.radio(
                     'Negative Side Effect',
-                    this.data.sectionM.FollowUps[0].FU_TicagrelorRN,
+                    data ? data.FU_TicagrelorRN : null,
                     {
                       alias: '',
                       style: 'radioInTable'
@@ -5464,29 +5489,29 @@ export class CathPciReport {
                 [
                   '',
                   pdf.text('Ticlopidine', { style: 'tableCell' }),
-                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_Ticlopidine, {
+                  pdf.radio('Yes - Prescribed', data ? data.FU_Ticlopidine : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_Ticlopidine, {
+                  pdf.radio('No - No Reason', data ? data.FU_Ticlopidine : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_Ticlopidine, {
+                  pdf.radio('No - Medical Reason', data ? data.FU_Ticlopidine : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_Ticlopidine, {
+                  pdf.radio('No - Patient Reason', data ? data.FU_Ticlopidine : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_TiclopidineRN, {
+                  pdf.radio('Cost', data ? data.FU_TiclopidineRN : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
                   pdf.radio(
                     'Alternative Therapy Preferred',
-                    this.data.sectionM.FollowUps[0].FU_TiclopidineRN,
+                    data ? data.FU_TiclopidineRN : null,
                     {
                       alias: '',
                       style: 'radioInTable'
@@ -5494,7 +5519,7 @@ export class CathPciReport {
                   ),
                   pdf.radio(
                     'Negative Side Effect',
-                    this.data.sectionM.FollowUps[0].FU_TiclopidineRN,
+                    data ? data.FU_TiclopidineRN : null,
                     {
                       alias: '',
                       style: 'radioInTable'
@@ -5504,35 +5529,35 @@ export class CathPciReport {
                 [
                   pdf.text('Statin', { style: 'medCell' }),
                   pdf.text('Statin (Any)', { style: 'tableCell' }),
-                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_Statin, {
+                  pdf.radio('Yes - Prescribed', data ? data.FU_Statin : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_Statin, {
+                  pdf.radio('No - No Reason', data ? data.FU_Statin : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_Statin, {
+                  pdf.radio('No - Medical Reason', data ? data.FU_Statin : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_Statin, {
+                  pdf.radio('No - Patient Reason', data ? data.FU_Statin : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_StatinRN, {
+                  pdf.radio('Cost', data ? data.FU_StatinRN : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
                   pdf.radio(
                     'Alternative Therapy Preferred',
-                    this.data.sectionM.FollowUps[0].FU_StatinRN,
+                    data ? data.FU_StatinRN : null,
                     {
                       alias: '',
                       style: 'radioInTable'
                     }
                   ),
-                  pdf.radio('Negative Side Effect', this.data.sectionM.FollowUps[0].FU_StatinRN, {
+                  pdf.radio('Negative Side Effect', data ? data.FU_StatinRN : null, {
                     alias: '',
                     style: 'radioInTable'
                   })
@@ -5540,29 +5565,29 @@ export class CathPciReport {
                 [
                   pdf.text('Non-Statin', { style: 'medCell' }),
                   pdf.text('Non-Statin (Any)', { style: 'tableCell' }),
-                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_NonStatin, {
+                  pdf.radio('Yes - Prescribed', data ? data.FU_NonStatin : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_NonStatin, {
+                  pdf.radio('No - No Reason', data ? data.FU_NonStatin : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_NonStatin, {
+                  pdf.radio('No - Medical Reason', data ? data.FU_NonStatin : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_NonStatin, {
+                  pdf.radio('No - Patient Reason', data ? data.FU_NonStatin : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_NonStatinRN, {
+                  pdf.radio('Cost', data ? data.FU_NonStatinRN : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
                   pdf.radio(
                     'Alternative Therapy Preferred',
-                    this.data.sectionM.FollowUps[0].FU_NonStatinRN,
+                    data ? data.FU_NonStatinRN : null,
                     {
                       alias: '',
                       style: 'radioInTable'
@@ -5570,7 +5595,7 @@ export class CathPciReport {
                   ),
                   pdf.radio(
                     'Negative Side Effect',
-                    this.data.sectionM.FollowUps[0].FU_NonStatinRN,
+                    data ? data.FU_NonStatinRN : null,
                     {
                       alias: '',
                       style: 'radioInTable'
@@ -5584,29 +5609,29 @@ export class CathPciReport {
                     margin: [0, 3, 0, 0]
                   }),
                   pdf.text('Alirocumab', { style: 'tableCell' }),
-                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_Alirocumab, {
+                  pdf.radio('Yes - Prescribed', data ? data.FU_Alirocumab : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_Alirocumab, {
+                  pdf.radio('No - No Reason', data ? data.FU_Alirocumab : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_Alirocumab, {
+                  pdf.radio('No - Medical Reason', data ? data.FU_Alirocumab : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_Alirocumab, {
+                  pdf.radio('No - Patient Reason', data ? data.FU_Alirocumab : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_AlirocumabRN, {
+                  pdf.radio('Cost', data ? data.FU_AlirocumabRN : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
                   pdf.radio(
                     'Alternative Therapy Preferred',
-                    this.data.sectionM.FollowUps[0].FU_AlirocumabRN,
+                    data ? data.FU_AlirocumabRN : null,
                     {
                       alias: '',
                       style: 'radioInTable'
@@ -5614,7 +5639,7 @@ export class CathPciReport {
                   ),
                   pdf.radio(
                     'Negative Side Effect',
-                    this.data.sectionM.FollowUps[0].FU_AlirocumabRN,
+                    data ? data.FU_AlirocumabRN : null,
                     {
                       alias: '',
                       style: 'radioInTable'
@@ -5624,29 +5649,29 @@ export class CathPciReport {
                 [
                   '',
                   pdf.text('Evolocumab', { style: 'tableCell' }),
-                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_Evolocumab, {
+                  pdf.radio('Yes - Prescribed', data ? data.FU_Evolocumab : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_Evolocumab, {
+                  pdf.radio('No - No Reason', data ? data.FU_Evolocumab : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_Evolocumab, {
+                  pdf.radio('No - Medical Reason', data ? data.FU_Evolocumab : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_Evolocumab, {
+                  pdf.radio('No - Patient Reason', data ? data.FU_Evolocumab : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_EvolocumabRN, {
+                  pdf.radio('Cost', data ? data.FU_EvolocumabRN : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
                   pdf.radio(
                     'Alternative Therapy Preferred',
-                    this.data.sectionM.FollowUps[0].FU_EvolocumabRN,
+                    data ? data.FU_EvolocumabRN : null,
                     {
                       alias: '',
                       style: 'radioInTable'
@@ -5654,7 +5679,7 @@ export class CathPciReport {
                   ),
                   pdf.radio(
                     'Negative Side Effect',
-                    this.data.sectionM.FollowUps[0].FU_EvolocumabRN,
+                    data ? data.FU_EvolocumabRN : null,
                     {
                       alias: '',
                       style: 'radioInTable'
@@ -5664,29 +5689,29 @@ export class CathPciReport {
                 [
                   pdf.text('Beta Blockers', { style: 'medCell' }),
                   pdf.text('Beta Blocker (Any)', { style: 'tableCell' }),
-                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_BetaBlocker, {
+                  pdf.radio('Yes - Prescribed', data ? data.FU_BetaBlocker : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_BetaBlocker, {
+                  pdf.radio('No - No Reason', data ? data.FU_BetaBlocker : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_BetaBlocker, {
+                  pdf.radio('No - Medical Reason', data ? data.FU_BetaBlocker : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_BetaBlocker, {
+                  pdf.radio('No - Patient Reason', data ? data.FU_BetaBlocker : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_BetaBlockerRN, {
+                  pdf.radio('Cost', data ? data.FU_BetaBlockerRN : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
                   pdf.radio(
                     'Alternative Therapy Preferred',
-                    this.data.sectionM.FollowUps[0].FU_BetaBlockerRN,
+                    data ? data.FU_BetaBlockerRN : null,
                     {
                       alias: '',
                       style: 'radioInTable'
@@ -5694,7 +5719,7 @@ export class CathPciReport {
                   ),
                   pdf.radio(
                     'Negative Side Effect',
-                    this.data.sectionM.FollowUps[0].FU_BetaBlockerRN,
+                    data ? data.FU_BetaBlockerRN : null,
                     {
                       alias: '',
                       style: 'radioInTable'
@@ -5704,35 +5729,35 @@ export class CathPciReport {
                 [
                   pdf.text('ACE Inhibitors', { style: 'medCell' }),
                   pdf.text('ACE Inhibitors (Any)', { style: 'tableCell' }),
-                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_ACEI, {
+                  pdf.radio('Yes - Prescribed', data ? data.FU_ACEI : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_ACEI, {
+                  pdf.radio('No - No Reason', data ? data.FU_ACEI : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_ACEI, {
+                  pdf.radio('No - Medical Reason', data ? data.FU_ACEI : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_ACEI, {
+                  pdf.radio('No - Patient Reason', data ? data.FU_ACEI : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_ACEIRN, {
+                  pdf.radio('Cost', data ? data.FU_ACEIRN : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
                   pdf.radio(
                     'Alternative Therapy Preferred',
-                    this.data.sectionM.FollowUps[0].FU_ACEIRN,
+                    data ? data.FU_ACEIRN : null,
                     {
                       alias: '',
                       style: 'radioInTable'
                     }
                   ),
-                  pdf.radio('Negative Side Effect', this.data.sectionM.FollowUps[0].FU_ACEIRN, {
+                  pdf.radio('Negative Side Effect', data ? data.FU_ACEIRN : null, {
                     alias: '',
                     style: 'radioInTable'
                   })
@@ -5740,41 +5765,41 @@ export class CathPciReport {
                 [
                   pdf.text('ARB (Angiotension Receptors Blockers)', { style: 'medCell' }),
                   pdf.text('ARB (Any)', { style: 'tableCell', margin: [0, 15, 0, 0] }),
-                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_ARB, {
+                  pdf.radio('Yes - Prescribed', data ? data.FU_ARB : null, {
                     alias: '',
                     style: 'radioInTable',
                     margin: [0, 15, 0, 0]
                   }),
-                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_ARB, {
+                  pdf.radio('No - No Reason', data ? data.FU_ARB : null, {
                     alias: '',
                     style: 'radioInTable',
                     margin: [0, 15, 0, 0]
                   }),
-                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_ARB, {
+                  pdf.radio('No - Medical Reason', data ? data.FU_ARB : null, {
                     alias: '',
                     style: 'radioInTable',
                     margin: [0, 15, 0, 0]
                   }),
-                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_ARB, {
+                  pdf.radio('No - Patient Reason', data ? data.FU_ARB : null, {
                     alias: '',
                     style: 'radioInTable',
                     margin: [0, 15, 0, 0]
                   }),
-                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_ARBRN, {
+                  pdf.radio('Cost', data ? data.FU_ARBRN : null, {
                     alias: '',
                     style: 'radioInTable',
                     margin: [0, 15, 0, 0]
                   }),
                   pdf.radio(
                     'Alternative Therapy Preferred',
-                    this.data.sectionM.FollowUps[0].FU_ARBRN,
+                    data ? data.FU_ARBRN : null,
                     {
                       alias: '',
                       style: 'radioInTable',
                       margin: [0, 15, 0, 0]
                     }
                   ),
-                  pdf.radio('Negative Side Effect', this.data.sectionM.FollowUps[0].FU_ARBRN, {
+                  pdf.radio('Negative Side Effect', data ? data.FU_ARBRN : null, {
                     alias: '',
                     style: 'radioInTable',
                     margin: [0, 15, 0, 0]
@@ -5783,35 +5808,35 @@ export class CathPciReport {
                 [
                   pdf.text('Anticoagulant', { style: 'medCell' }),
                   pdf.text('Warfarin', { style: 'tableCell' }),
-                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_Warfarin, {
+                  pdf.radio('Yes - Prescribed', data ? data.FU_Warfarin : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_Warfarin, {
+                  pdf.radio('No - No Reason', data ? data.FU_Warfarin : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_Warfarin, {
+                  pdf.radio('No - Medical Reason', data ? data.FU_Warfarin : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_Warfarin, {
+                  pdf.radio('No - Patient Reason', data ? data.FU_Warfarin : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_WarfarinRN, {
+                  pdf.radio('Cost', data ? data.FU_WarfarinRN : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
                   pdf.radio(
                     'Alternative Therapy Preferred',
-                    this.data.sectionM.FollowUps[0].FU_WarfarinRN,
+                    data ? data.FU_WarfarinRN : null,
                     {
                       alias: '',
                       style: 'radioInTable'
                     }
                   ),
-                  pdf.radio('Negative Side Effect', this.data.sectionM.FollowUps[0].FU_WarfarinRN, {
+                  pdf.radio('Negative Side Effect', data ? data.FU_WarfarinRN : null, {
                     alias: '',
                     style: 'radioInTable'
                   })
@@ -5823,35 +5848,35 @@ export class CathPciReport {
                     margin: [0, 12, 0, 0]
                   }),
                   pdf.text('Apixaban', { style: 'tableCell' }),
-                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_Apixaban, {
+                  pdf.radio('Yes - Prescribed', data ? data.FU_Apixaban : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_Apixaban, {
+                  pdf.radio('No - No Reason', data ? data.FU_Apixaban : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_Apixaban, {
+                  pdf.radio('No - Medical Reason', data ? data.FU_Apixaban : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_Apixaban, {
+                  pdf.radio('No - Patient Reason', data ? data.FU_Apixaban : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_ApixabanRN, {
+                  pdf.radio('Cost', data ? data.FU_ApixabanRN : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
                   pdf.radio(
                     'Alternative Therapy Preferred',
-                    this.data.sectionM.FollowUps[0].FU_ApixabanRN,
+                    data ? data.FU_ApixabanRN : null,
                     {
                       alias: '',
                       style: 'radioInTable'
                     }
                   ),
-                  pdf.radio('Negative Side Effect', this.data.sectionM.FollowUps[0].FU_ApixabanRN, {
+                  pdf.radio('Negative Side Effect', data ? data.FU_ApixabanRN : null, {
                     alias: '',
                     style: 'radioInTable'
                   })
@@ -5859,29 +5884,29 @@ export class CathPciReport {
                 [
                   '',
                   pdf.text('Dabigatran', { style: 'tableCell' }),
-                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_Dabigatran, {
+                  pdf.radio('Yes - Prescribed', data ? data.FU_Dabigatran : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_Dabigatran, {
+                  pdf.radio('No - No Reason', data ? data.FU_Dabigatran : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_Dabigatran, {
+                  pdf.radio('No - Medical Reason', data ? data.FU_Dabigatran : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_Dabigatran, {
+                  pdf.radio('No - Patient Reason', data ? data.FU_Dabigatran : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_DabigatranRN, {
+                  pdf.radio('Cost', data ? data.FU_DabigatranRN : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
                   pdf.radio(
                     'Alternative Therapy Preferred',
-                    this.data.sectionM.FollowUps[0].FU_DabigatranRN,
+                    data ? data.FU_DabigatranRN : null,
                     {
                       alias: '',
                       style: 'radioInTable'
@@ -5889,7 +5914,7 @@ export class CathPciReport {
                   ),
                   pdf.radio(
                     'Negative Side Effect',
-                    this.data.sectionM.FollowUps[0].FU_DabigatranRN,
+                    data ? data.FU_DabigatranRN : null,
                     {
                       alias: '',
                       style: 'radioInTable'
@@ -5899,35 +5924,35 @@ export class CathPciReport {
                 [
                   '',
                   pdf.text('Edoxaban', { style: 'tableCell' }),
-                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_Edoxaban, {
+                  pdf.radio('Yes - Prescribed', data ? data.FU_Edoxaban : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_Edoxaban, {
+                  pdf.radio('No - No Reason', data ? data.FU_Edoxaban : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_Edoxaban, {
+                  pdf.radio('No - Medical Reason', data ? data.FU_Edoxaban : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_Edoxaban, {
+                  pdf.radio('No - Patient Reason', data ? data.FU_Edoxaban : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_EdoxabanRN, {
+                  pdf.radio('Cost', data ? data.FU_EdoxabanRN : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
                   pdf.radio(
                     'Alternative Therapy Preferred',
-                    this.data.sectionM.FollowUps[0].FU_EdoxabanRN,
+                    data ? data.FU_EdoxabanRN : null,
                     {
                       alias: '',
                       style: 'radioInTable'
                     }
                   ),
-                  pdf.radio('Negative Side Effect', this.data.sectionM.FollowUps[0].FU_EdoxabanRN, {
+                  pdf.radio('Negative Side Effect', data ? data.FU_EdoxabanRN : null, {
                     alias: '',
                     style: 'radioInTable'
                   })
@@ -5935,29 +5960,29 @@ export class CathPciReport {
                 [
                   '',
                   pdf.text('Rivaroxaban', { style: 'tableCell' }),
-                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_Rivaroxaban, {
+                  pdf.radio('Yes - Prescribed', data ? data.FU_Rivaroxaban : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_Rivaroxaban, {
+                  pdf.radio('No - No Reason', data ? data.FU_Rivaroxaban : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_Rivaroxaban, {
+                  pdf.radio('No - Medical Reason', data ? data.FU_Rivaroxaban : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_Rivaroxaban, {
+                  pdf.radio('No - Patient Reason', data ? data.FU_Rivaroxaban : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
-                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_RivaroxabanRN, {
+                  pdf.radio('Cost', data ? data.FU_RivaroxabanRN : null, {
                     alias: '',
                     style: 'radioInTable'
                   }),
                   pdf.radio(
                     'Alternative Therapy Preferred',
-                    this.data.sectionM.FollowUps[0].FU_RivaroxabanRN,
+                    data ? data.FU_RivaroxabanRN : null,
                     {
                       alias: '',
                       style: 'radioInTable'
@@ -5965,7 +5990,7 @@ export class CathPciReport {
                   ),
                   pdf.radio(
                     'Negative Side Effect',
-                    this.data.sectionM.FollowUps[0].FU_RivaroxabanRN,
+                    data ? data.FU_RivaroxabanRN : null,
                     {
                       alias: '',
                       style: 'radioInTable'
@@ -5996,13 +6021,14 @@ export class CathPciReport {
           pdf.columns(
             pdf.text('', { width: 26 }),
             pdf.stack(
-              pdf.radio('Low Intensity Dose', this.data.sectionM.FollowUps[0].FU_StatinDose),
-              pdf.radio('Moderate Intensity Dose', this.data.sectionM.FollowUps[0].FU_StatinDose),
-              pdf.radio('High Intensity Dose', this.data.sectionM.FollowUps[0].FU_StatinDose)
+              pdf.radio('Low Intensity Dose', data ? data.FU_StatinDose : null),
+              pdf.radio('Moderate Intensity Dose', data ? data.FU_StatinDose : null),
+              pdf.radio('High Intensity Dose', data ? data.FU_StatinDose : null)
             )
           )
         )
       ]
+
     ];
   }
 }
