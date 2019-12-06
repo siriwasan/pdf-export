@@ -4,6 +4,7 @@ import * as pdf from './pdf-report';
 const maxNvLength = 5;
 const maxGraftLength = 4;
 const maxPciLength = 4;
+const maxDeviceLength = 10;
 
 export class CathPciReport {
   data: any = null;
@@ -28,7 +29,7 @@ export class CathPciReport {
                 style: 'header'
               }
             ],
-            // // page 1
+            // page 1
             // ...this.sectionA(),
             // ...this.sectionB(),
             // ...this.sectionC(),
@@ -40,11 +41,16 @@ export class CathPciReport {
             // // page 4
             // ...this.sectionG(),
             // // page 5
-            ...this.sectionH()
+            // ...this.sectionH(),
             // // page 6-7
             // ...this.sectionI(),
-            // page 8
-            // ...this.sectionJ()
+            // // page 8
+            // ...this.sectionJ(),
+            // ...this.sectionK(),
+            // page 9
+            // ...this.sectionL(),
+            // page 10
+            ...this.sectionM()
           ]
         }
       }
@@ -961,7 +967,7 @@ export class CathPciReport {
     return [
       [
         pdf.blockStyle(
-          // { style: 'section', pageBreak: 'before' },
+          { style: 'section', pageBreak: 'before' },
           // { style: 'section' },
           pdf.section('E. PROCEDURE INFORMATION')
         )
@@ -1785,7 +1791,7 @@ export class CathPciReport {
     return [
       [
         pdf.blockStyle(
-          // { style: 'section', pageBreak: 'before' },
+          { style: 'section', pageBreak: 'before' },
           // { style: 'section' },
           pdf.section('H. CORONARY ANATOMY')
         )
@@ -1888,7 +1894,7 @@ export class CathPciReport {
   private nativeVesselStenosis(data: any) {
     return [
       pdf.stack(
-        pdf.input(data?.NVSegmentID, {
+        pdf.input(data ? data.NVSegmentID : null, {
           alignment: 'center',
           margin: [0, 25, 0, 0]
         })
@@ -2638,8 +2644,8 @@ export class CathPciReport {
     return [
       [
         pdf.blockStyle(
-          // { style: 'section', pageBreak: 'before' },
-          { style: 'section' },
+          { style: 'section', pageBreak: 'before' },
+          // { style: 'section' },
           pdf.section('J. LESIONS AND DEVICES'),
           {
             text: ' (Complete for Each PCI Attempted or Performed)',
@@ -2647,7 +2653,54 @@ export class CathPciReport {
           }
         )
       ],
-      [pdf.stack(...this.getPci())]
+      [
+        pdf.stack(
+          ...this.getPci(),
+          {
+            margin: [0, 3, 0, 5],
+            table: {
+              widths: [200, 110, '*', 40, 40],
+              body: [
+                [
+                  pdf.blockStyle(
+                    { style: 'tableHeaderWithAnno', margin: [0, 8, 0, 0] },
+                    { text: 'Intracoronary Device(s) Used', bold: true },
+                    `⁸⁰²⁷'⁸⁰²⁸`
+                  ),
+                  pdf.blockStyle(
+                    { style: 'tableHeaderWithAnno', margin: [0, 3, 0, 0] },
+                    { text: 'Unique Device Identifier (UDI)', bold: true },
+                    `⁸⁰²⁹`
+                  ),
+                  pdf.blockStyle(
+                    { style: 'tableHeaderWithAnno', margin: [0, 3, 0, 0] },
+                    { text: 'Associated Lesion(s)', bold: true },
+                    `⁸⁰³⁰`
+                  ),
+                  pdf.blockStyle(
+                    { style: 'tableHeaderWithAnno', margin: [0, 5, 0, 0] },
+                    { text: 'Diameter', bold: true },
+                    `\n⁸⁰³¹`
+                  ),
+                  pdf.blockStyle(
+                    { style: 'tableHeaderWithAnno', margin: [0, 5, 0, 0] },
+                    { text: 'Length', bold: true },
+                    `\n⁸⁰³²`
+                  )
+                ],
+                ...this.getDevice()
+              ]
+            }
+          },
+          pdf.block(
+            pdf.field('PCI Result'),
+            pdf.tab(),
+            pdf.radio('Angiographic Success', this.data.sectionJ.PCIResult),
+            pdf.tab(),
+            pdf.radio('Angiographic Failure', this.data.sectionJ.PCIResult)
+          )
+        )
+      ]
     ];
   }
 
@@ -2661,16 +2714,13 @@ export class CathPciReport {
       if (index < pciLength) {
         pci = this.data.sectionJ.PciLesions[index];
       }
-      output.push(this.pciLesion());
-
-      if (index !== maxLength - 1) {
-        output.push({ text: '', pageBreak: 'after' });
-      }
+      output.push(this.pciLesion(pci));
+      output.push({ text: '', pageBreak: 'after' });
     }
     return output;
   }
 
-  private pciLesion() {
+  private pciLesion(data: any) {
     return [
       pdf.emptyLine(),
       {
@@ -2681,7 +2731,7 @@ export class CathPciReport {
               pdf.blockStyle(
                 { alignment: 'center', fillColor: '#dddddd', lineHeight: 1.0, colSpan: 2 },
                 pdf.field('Lesion Counter', { annotation: '8000' }),
-                pdf.input(this.data.sectionJ.PciLesions[0].LesionCounter)
+                pdf.input(data ? data.LesionCounter : null, { blank: 6 })
               ),
               ''
             ],
@@ -2691,7 +2741,7 @@ export class CathPciReport {
                 pdf.emptyLine(),
                 pdf.block(
                   pdf.field('Segment Number(s)', { annotation: '8001' }),
-                  pdf.inputArray(this.data.sectionJ.PciLesions[0].SegmentID)
+                  pdf.inputArray(data ? data.SegmentID : null)
                 )
               ),
               ''
@@ -2701,7 +2751,7 @@ export class CathPciReport {
                 pdf.emptyLine(),
                 pdf.block(
                   pdf.field('Stenosis Immediately Prior to Rx', { annotation: '8004' }),
-                  pdf.input(this.data.sectionJ.PciLesions[0].StenosisPriorTreat),
+                  pdf.input(data ? data.StenosisPriorTreat : null),
                   ' %'
                 ),
                 pdf.block(
@@ -2712,38 +2762,38 @@ export class CathPciReport {
                 ),
                 pdf.block(
                   pdf.tab(3),
-                  pdf.radio('No', this.data.sectionJ.PciLesions[0].ChronicOcclusion),
+                  pdf.radio('No', data ? data.ChronicOcclusion : null),
                   pdf.tab(),
-                  pdf.radio('Yes', this.data.sectionJ.PciLesions[0].ChronicOcclusion),
+                  pdf.radio('Yes', data ? data.ChronicOcclusion : null),
                   pdf.tab(),
-                  pdf.radio('Unknown', this.data.sectionJ.PciLesions[0].ChronicOcclusion)
+                  pdf.radio('Unknown', data ? data.ChronicOcclusion : null)
                 ),
                 pdf.field('TIMI Flow (Pre-Intervention)', { annotation: '8007' }),
                 pdf.block(
                   pdf.tab(3),
-                  pdf.radio('TIMI-0', this.data.sectionJ.PciLesions[0].PreProcTIMI),
+                  pdf.radio('TIMI-0', data ? data.PreProcTIMI : null),
                   pdf.tab(),
-                  pdf.radio('TIMI-1', this.data.sectionJ.PciLesions[0].PreProcTIMI),
+                  pdf.radio('TIMI-1', data ? data.PreProcTIMI : null),
                   pdf.tab(),
-                  pdf.radio('TIMI-2', this.data.sectionJ.PciLesions[0].PreProcTIMI),
+                  pdf.radio('TIMI-2', data ? data.PreProcTIMI : null),
                   pdf.tab(),
-                  pdf.radio('TIMI-3', this.data.sectionJ.PciLesions[0].PreProcTIMI)
+                  pdf.radio('TIMI-3', data ? data.PreProcTIMI : null)
                 ),
                 pdf.lineHalf(),
                 pdf.emptyLine(),
                 pdf.block(
                   pdf.field('Previously Treated Lesion', { annotation: '8008' }),
                   pdf.tab(),
-                  pdf.radio('No', this.data.sectionJ.PciLesions[0].PrevTreatedLesion),
+                  pdf.radio('No', data ? data.PrevTreatedLesion : null),
                   pdf.tab(),
-                  pdf.radio('Yes', this.data.sectionJ.PciLesions[0].PrevTreatedLesion)
+                  pdf.radio('Yes', data ? data.PrevTreatedLesion : null)
                 ),
                 pdf.block(
                   pdf.tab(),
                   pdf.arrowIf(),
                   ' Yes, ',
                   pdf.field('Date', { annotation: '8009' }),
-                  pdf.date(this.data.sectionJ.PciLesions[0].PrevTreatedLesionDate)
+                  pdf.date(data ? data.PrevTreatedLesionDate : null)
                 ),
                 pdf.block(
                   pdf.tab(),
@@ -2751,9 +2801,9 @@ export class CathPciReport {
                   ' Yes, ',
                   pdf.field('Treated with Stent', { annotation: '8010' }),
                   pdf.tab(),
-                  pdf.radio('No', this.data.sectionJ.PciLesions[0].PreviousStent),
+                  pdf.radio('No', data ? data.PreviousStent : null),
                   pdf.tab(),
-                  pdf.radio('Yes', this.data.sectionJ.PciLesions[0].PreviousStent)
+                  pdf.radio('Yes', data ? data.PreviousStent : null)
                 ),
                 pdf.block(
                   pdf.tab(2),
@@ -2761,9 +2811,9 @@ export class CathPciReport {
                   ' Yes, ',
                   pdf.field('In-stent Restenosis', { annotation: '8011' }),
                   pdf.tab(),
-                  pdf.radio('No', this.data.sectionJ.PciLesions[0].InRestenosis),
+                  pdf.radio('No', data ? data.InRestenosis : null),
                   pdf.tab(),
-                  pdf.radio('Yes', this.data.sectionJ.PciLesions[0].InRestenosis)
+                  pdf.radio('Yes', data ? data.InRestenosis : null)
                 ),
                 pdf.block(
                   pdf.tab(2),
@@ -2771,9 +2821,9 @@ export class CathPciReport {
                   ' Yes, ',
                   pdf.field('In-stent Thrombosis', { annotation: '8012' }),
                   pdf.tab(),
-                  pdf.radio('No', this.data.sectionJ.PciLesions[0].InThrombosis),
+                  pdf.radio('No', data ? data.InThrombosis : null),
                   pdf.tab(),
-                  pdf.radio('Yes', this.data.sectionJ.PciLesions[0].InThrombosis)
+                  pdf.radio('Yes', data ? data.InThrombosis : null)
                 ),
                 pdf.block(
                   pdf.tab(2),
@@ -2785,15 +2835,12 @@ export class CathPciReport {
                   { text: '', width: 35 },
                   pdf.stackStyle(
                     { width: 115 },
-                    pdf.radio('Bare Metal Stent (BMS)', this.data.sectionJ.PciLesions[0].StentType),
-                    pdf.radio(
-                      'Drug-Eluting Stent (DES)',
-                      this.data.sectionJ.PciLesions[0].StentType
-                    )
+                    pdf.radio('Bare Metal Stent (BMS)', data ? data.StentType : null),
+                    pdf.radio('Drug-Eluting Stent (DES)', data ? data.StentType : null)
                   ),
                   pdf.stack(
-                    pdf.radio('Bioabsorbable Stent', this.data.sectionJ.PciLesions[0].StentType),
-                    pdf.radio('Unknown', this.data.sectionJ.PciLesions[0].StentType)
+                    pdf.radio('Bioabsorbable Stent', data ? data.StentType : null),
+                    pdf.radio('Unknown', data ? data.StentType : null)
                   )
                 ),
                 pdf.lineHalf(),
@@ -2801,9 +2848,9 @@ export class CathPciReport {
                 pdf.block(
                   pdf.field('Lesion in Graft', { annotation: '8015' }),
                   pdf.tab(),
-                  pdf.radio('No', this.data.sectionJ.PciLesions[0].LesionGraft),
+                  pdf.radio('No', data ? data.LesionGraft : null),
                   pdf.tab(),
-                  pdf.radio('Yes', this.data.sectionJ.PciLesions[0].LesionGraft)
+                  pdf.radio('Yes', data ? data.LesionGraft : null)
                 ),
                 pdf.block(
                   pdf.tab(),
@@ -2813,11 +2860,11 @@ export class CathPciReport {
                 ),
                 pdf.block(
                   pdf.tab(3),
-                  pdf.radio('LIMA', this.data.sectionJ.PciLesions[0].LesionGraftType),
+                  pdf.radio('LIMA', data ? data.LesionGraftType : null),
                   pdf.tab(),
-                  pdf.radio('Vein', this.data.sectionJ.PciLesions[0].LesionGraftType),
+                  pdf.radio('Vein', data ? data.LesionGraftType : null),
                   pdf.tab(),
-                  pdf.radio('Other Artery', this.data.sectionJ.PciLesions[0].LesionGraftType)
+                  pdf.radio('Other Artery', data ? data.LesionGraftType : null)
                 ),
                 pdf.block(
                   pdf.tab(),
@@ -2827,27 +2874,27 @@ export class CathPciReport {
                 ),
                 pdf.block(
                   pdf.tab(3),
-                  pdf.radio('Aortic', this.data.sectionJ.PciLesions[0].LocGraft),
+                  pdf.radio('Aortic', data ? data.LocGraft : null),
                   pdf.tab(),
-                  pdf.radio('Body', this.data.sectionJ.PciLesions[0].LocGraft),
+                  pdf.radio('Body', data ? data.LocGraft : null),
                   pdf.tab(),
-                  pdf.radio('Distal', this.data.sectionJ.PciLesions[0].LocGraft)
+                  pdf.radio('Distal', data ? data.LocGraft : null)
                 ),
                 pdf.block(
                   pdf.field('Navigate through Graft to Native Lesion', { annotation: '8018' }),
                   pdf.space(),
-                  pdf.radio('No', this.data.sectionJ.PciLesions[0].NavGraftNatLes),
+                  pdf.radio('No', data ? data.NavGraftNatLes : null),
                   pdf.space(2),
-                  pdf.radio('Yes', this.data.sectionJ.PciLesions[0].NavGraftNatLes)
+                  pdf.radio('Yes', data ? data.NavGraftNatLes : null)
                 ),
                 pdf.lineHalf(),
                 pdf.emptyLine(),
                 pdf.block(
                   pdf.field('Bifurcation Lesion'),
                   pdf.tab(),
-                  pdf.radio('No', this.data.sectionJ.PciLesions[0].BifurcationLesion),
+                  pdf.radio('No', data ? data.BifurcationLesion : null),
                   pdf.tab(),
-                  pdf.radio('Yes', this.data.sectionJ.PciLesions[0].BifurcationLesion)
+                  pdf.radio('Yes', data ? data.BifurcationLesion : null)
                 ),
                 pdf.block(
                   pdf.tab(),
@@ -2857,21 +2904,21 @@ export class CathPciReport {
                 ),
                 pdf.block(
                   pdf.tab(3),
-                  pdf.check('1,1,1', this.data.sectionJ.PciLesions[0].BifurcationClassification),
+                  pdf.check('1,1,1', data ? data.BifurcationClassification : null),
                   pdf.tab(),
-                  pdf.check('1,1,0', this.data.sectionJ.PciLesions[0].BifurcationClassification),
+                  pdf.check('1,1,0', data ? data.BifurcationClassification : null),
                   pdf.tab(),
-                  pdf.check('1,0,1', this.data.sectionJ.PciLesions[0].BifurcationClassification),
+                  pdf.check('1,0,1', data ? data.BifurcationClassification : null),
                   pdf.tab(),
-                  pdf.check('0,1,1', this.data.sectionJ.PciLesions[0].BifurcationClassification)
+                  pdf.check('0,1,1', data ? data.BifurcationClassification : null)
                 ),
                 pdf.block(
                   pdf.tab(3),
-                  pdf.check('1,0,0', this.data.sectionJ.PciLesions[0].BifurcationClassification),
+                  pdf.check('1,0,0', data ? data.BifurcationClassification : null),
                   pdf.tab(),
-                  pdf.check('0,1,0', this.data.sectionJ.PciLesions[0].BifurcationClassification),
+                  pdf.check('0,1,0', data ? data.BifurcationClassification : null),
                   pdf.tab(),
-                  pdf.check('0,0,1', this.data.sectionJ.PciLesions[0].BifurcationClassification)
+                  pdf.check('0,0,1', data ? data.BifurcationClassification : null)
                 ),
                 pdf.block(
                   pdf.tab(),
@@ -2879,9 +2926,9 @@ export class CathPciReport {
                   ' Yes, ',
                   pdf.field('Bifurcation Stenting'),
                   pdf.tab(),
-                  pdf.radio('No', this.data.sectionJ.PciLesions[0].BifurcationStenting),
+                  pdf.radio('No', data ? data.BifurcationStenting : null),
                   pdf.tab(),
-                  pdf.radio('Yes', this.data.sectionJ.PciLesions[0].BifurcationStenting)
+                  pdf.radio('Yes', data ? data.BifurcationStenting : null)
                 ),
                 pdf.block(
                   pdf.tab(2),
@@ -2893,89 +2940,86 @@ export class CathPciReport {
                   pdf.tab(4),
                   pdf.radio(
                     'Provisional MB stenting (stent MB first)',
-                    this.data.sectionJ.PciLesions[0].StentTechniqueStrategy
+                    data ? data.StentTechniqueStrategy : null
                   )
                 ),
                 pdf.block(
                   pdf.tab(4),
                   pdf.radio(
                     'Provisional SB stenting (stent SB first)',
-                    this.data.sectionJ.PciLesions[0].StentTechniqueStrategy
+                    data ? data.StentTechniqueStrategy : null
                   )
                 ),
                 pdf.block(pdf.tab(2), pdf.arrowIf(), ' Yes, ', pdf.field('Stent Technique')),
                 pdf.block(
                   pdf.tab(4),
-                  pdf.radio(
-                    'DK Crush (Double Kissing Crush)',
-                    this.data.sectionJ.PciLesions[0].StentTechnique
-                  )
+                  pdf.radio('DK Crush (Double Kissing Crush)', data ? data.StentTechnique : null)
                 ),
                 pdf.columns(
                   { text: '', width: 36 },
-                  pdf.radio('Culotte', this.data.sectionJ.PciLesions[0].StentTechnique),
-                  pdf.radio('V stenting', this.data.sectionJ.PciLesions[0].StentTechnique)
+                  pdf.radio('Culotte', data ? data.StentTechnique : null),
+                  pdf.radio('V stenting', data ? data.StentTechnique : null)
                 ),
                 pdf.columns(
                   { text: '', width: 36 },
-                  pdf.radio('Modified T stenting', this.data.sectionJ.PciLesions[0].StentTechnique),
-                  pdf.radio('T and Protusion', this.data.sectionJ.PciLesions[0].StentTechnique)
+                  pdf.radio('Modified T stenting', data ? data.StentTechnique : null),
+                  pdf.radio('T and Protusion', data ? data.StentTechnique : null)
                 ),
                 pdf.columns(
                   { text: '', width: 36 },
-                  pdf.radio('Kissing stenting', this.data.sectionJ.PciLesions[0].StentTechnique),
-                  pdf.radio('Dedicated stenting', this.data.sectionJ.PciLesions[0].StentTechnique)
+                  pdf.radio('Kissing stenting', data ? data.StentTechnique : null),
+                  pdf.radio('Dedicated stenting', data ? data.StentTechnique : null)
                 )
               ),
               pdf.stack(
                 pdf.emptyLine(),
+                pdf.block(pdf.arrowIf(), ' PCI Indication⁷⁸²⁵ is STEMI or NSTE-ACS,'),
                 pdf.block(
-                  { text: 'If ', bold: true },
-                  ' PCI Indication⁷⁸²⁵ is STEMI or NSTE-ACS, ',
+                  pdf.tab(2),
                   pdf.field('Culprit Stenosis', { annotation: '8002' }),
                   pdf.tab(),
-                  pdf.radio('No', this.data.sectionJ.PciLesions[0].CulpritArtery),
+                  pdf.radio('No', data ? data.CulpritArtery : null),
                   pdf.tab(),
-                  pdf.radio('Yes', this.data.sectionJ.PciLesions[0].CulpritArtery),
+                  pdf.radio('Yes', data ? data.CulpritArtery : null),
                   pdf.tab(),
-                  pdf.radio('Unknown', this.data.sectionJ.PciLesions[0].CulpritArtery)
+                  pdf.radio('Unknown', data ? data.CulpritArtery : null)
                 ),
                 pdf.lineHalf(),
                 pdf.emptyLine(),
                 pdf.block(
                   pdf.field('Lesion Complexity', { annotation: '8019' }),
                   pdf.tab(),
-                  pdf.radio('Non-High/Non-C', this.data.sectionJ.PciLesions[0].LesionComplexity),
+                  pdf.radio('Non-High/Non-C', data ? data.LesionComplexity : null),
                   pdf.tab(),
-                  pdf.radio('High/C', this.data.sectionJ.PciLesions[0].LesionComplexity)
+                  pdf.radio('High/C', data ? data.LesionComplexity : null)
                 ),
                 pdf.block(
                   pdf.field('Lesion Length', { annotation: '8020' }),
-                  pdf.input(this.data.sectionJ.PciLesions[0].LesionLength),
+                  pdf.input(data ? data.LesionLength : null),
                   ' mm'
                 ),
                 pdf.block(
                   pdf.field('Severe Calcification', { annotation: '8021' }),
                   pdf.tab(),
-                  pdf.radio('No', this.data.sectionJ.PciLesions[0].SevereCalcification),
+                  pdf.radio('No', data ? data.SevereCalcification : null),
                   pdf.tab(),
-                  pdf.radio('Yes', this.data.sectionJ.PciLesions[0].SevereCalcification)
+                  pdf.radio('Yes', data ? data.SevereCalcification : null)
                 ),
                 pdf.lineHalf(),
                 pdf.emptyLine(),
                 pdf.block(
                   pdf.field('Guidewire Across Lesion', { annotation: '8023' }),
                   pdf.tab(),
-                  pdf.radio('No', this.data.sectionJ.PciLesions[0].GuidewireLesion),
+                  pdf.radio('No', data ? data.GuidewireLesion : null),
                   pdf.tab(),
-                  pdf.radio('Yes', this.data.sectionJ.PciLesions[0].GuidewireLesion)
+                  pdf.radio('Yes', data ? data.GuidewireLesion : null)
                 ),
                 pdf.block(pdf.tab(), pdf.arrowIf(), ' Yes, ', pdf.field('Guidewire Across')),
                 pdf.block(
                   pdf.tab(3),
-                  pdf.check('Main branch', this.data.sectionJ.PciLesions[0].GuidewireAcross),
+                  pdf.check('Main branch', data ? data.GuidewireAcross : null),
                   pdf.tab(),
-                  pdf.check('Side branch', this.data.sectionJ.PciLesions[0].GuidewireAcross)
+                  pdf.check('Side branch', data ? data.GuidewireAcross : null)
                 ),
                 pdf.block(
                   pdf.tab(),
@@ -2983,9 +3027,9 @@ export class CathPciReport {
                   ' Yes, ',
                   pdf.field('Device(s) Deployed', { annotation: '8024' }),
                   pdf.tab(),
-                  pdf.radio('No', this.data.sectionJ.PciLesions[0].DeviceDeployed),
+                  pdf.radio('No', data ? data.DeviceDeployed : null),
                   pdf.tab(),
-                  pdf.radio('Yes', this.data.sectionJ.PciLesions[0].DeviceDeployed)
+                  pdf.radio('Yes', data ? data.DeviceDeployed : null)
                 ),
                 pdf.block(
                   pdf.tab(2),
@@ -2995,12 +3039,9 @@ export class CathPciReport {
                 ),
                 pdf.block(
                   pdf.tab(4),
-                  pdf.radio(
-                    'No',
-                    this.data.sectionJ.PciLesions[0].InThroIntraCoroMeasurementmbosis
-                  ),
+                  pdf.radio('No', data ? data.InThroIntraCoroMeasurementmbosis : null),
                   pdf.tab(),
-                  pdf.radio('Yes', this.data.sectionJ.PciLesions[0].IntraCoroMeasurement)
+                  pdf.radio('Yes', data ? data.IntraCoroMeasurement : null)
                 ),
                 pdf.block(
                   pdf.tab(3),
@@ -3010,15 +3051,9 @@ export class CathPciReport {
                 ),
                 pdf.block(
                   pdf.tab(5),
-                  pdf.check(
-                    'Main branch',
-                    this.data.sectionJ.PciLesions[0].IntraCoroMeasurementSite
-                  ),
+                  pdf.check('Main branch', data ? data.IntraCoroMeasurementSite : null),
                   pdf.tab(),
-                  pdf.check(
-                    'Side branch',
-                    this.data.sectionJ.PciLesions[0].IntraCoroMeasurementSite
-                  )
+                  pdf.check('Side branch', data ? data.IntraCoroMeasurementSite : null)
                 ),
                 pdf.block(
                   pdf.tab(4),
@@ -3030,40 +3065,40 @@ export class CathPciReport {
                   { text: '', width: 55 },
                   pdf.block(
                     pdf.field('FFR Ratio'),
-                    pdf.input(this.data.sectionJ.PciLesions[0].MB_FFR, { blank: 6 })
+                    pdf.input(data ? data.MB_FFR : null, { blank: 6 })
                   ),
                   pdf.block(
                     pdf.field('FFR Type'),
-                    pdf.radio('IC', this.data.sectionJ.PciLesions[0].MB_FFR_Type),
+                    pdf.radio('IC', data ? data.MB_FFR_Type : null),
                     pdf.space(2),
-                    pdf.radio('IV', this.data.sectionJ.PciLesions[0].MB_FFR_Type)
+                    pdf.radio('IV', data ? data.MB_FFR_Type : null)
                   )
                 ),
                 pdf.block(
                   pdf.tab(6),
                   pdf.field('iFR Ratio'),
-                  pdf.input(this.data.sectionJ.PciLesions[0].MB_IFR, { blank: 6 })
+                  pdf.input(data ? data.MB_IFR : null, { blank: 6 })
                 ),
                 pdf.columns(
                   { text: '', width: 55 },
                   pdf.block(
                     pdf.field('IVUS Pre MLA'),
-                    pdf.input(this.data.sectionJ.PciLesions[0].MB_IVUS_Pre, { blank: 5 })
+                    pdf.input(data ? data.MB_IVUS_Pre : null, { blank: 5 })
                   ),
                   pdf.block(
                     pdf.field('IVUS Post MLA'),
-                    pdf.input(this.data.sectionJ.PciLesions[0].MB_IVUS_Post, { blank: 5 })
+                    pdf.input(data ? data.MB_IVUS_Post : null, { blank: 5 })
                   )
                 ),
                 pdf.columns(
                   { text: '', width: 55 },
                   pdf.block(
                     pdf.field('OCT Pre MLA'),
-                    pdf.input(this.data.sectionJ.PciLesions[0].MB_OCT_Pre, { blank: 5 })
+                    pdf.input(data ? data.MB_OCT_Pre : null, { blank: 5 })
                   ),
                   pdf.block(
                     pdf.field('OCT Post MLA'),
-                    pdf.input(this.data.sectionJ.PciLesions[0].MB_OCT_Post, { blank: 5 })
+                    pdf.input(data ? data.MB_OCT_Post : null, { blank: 5 })
                   )
                 ),
                 pdf.block(
@@ -3076,40 +3111,40 @@ export class CathPciReport {
                   { text: '', width: 55 },
                   pdf.block(
                     pdf.field('FFR Ratio'),
-                    pdf.input(this.data.sectionJ.PciLesions[0].SB_FFR, { blank: 6 })
+                    pdf.input(data ? data.SB_FFR : null, { blank: 6 })
                   ),
                   pdf.block(
                     pdf.field('FFR Type'),
-                    pdf.radio('IC', this.data.sectionJ.PciLesions[0].SB_FFR_Type),
+                    pdf.radio('IC', data ? data.SB_FFR_Type : null),
                     pdf.space(2),
-                    pdf.radio('IV', this.data.sectionJ.PciLesions[0].SB_FFR_Type)
+                    pdf.radio('IV', data ? data.SB_FFR_Type : null)
                   )
                 ),
                 pdf.block(
                   pdf.tab(6),
                   pdf.field('iFR Ratio'),
-                  pdf.input(this.data.sectionJ.PciLesions[0].SB_IFR, { blank: 6 })
+                  pdf.input(data ? data.SB_IFR : null, { blank: 6 })
                 ),
                 pdf.columns(
                   { text: '', width: 55 },
                   pdf.block(
                     pdf.field('IVUS Pre MLA'),
-                    pdf.input(this.data.sectionJ.PciLesions[0].SB_IVUS_Pre, { blank: 5 })
+                    pdf.input(data ? data.SB_IVUS_Pre : null, { blank: 5 })
                   ),
                   pdf.block(
                     pdf.field('IVUS Post MLA'),
-                    pdf.input(this.data.sectionJ.PciLesions[0].SB_IVUS_Post, { blank: 5 })
+                    pdf.input(data ? data.SB_IVUS_Post : null, { blank: 5 })
                   )
                 ),
                 pdf.columns(
                   { text: '', width: 55 },
                   pdf.block(
                     pdf.field('OCT Pre MLA'),
-                    pdf.input(this.data.sectionJ.PciLesions[0].SB_OCT_Pre, { blank: 5 })
+                    pdf.input(data ? data.SB_OCT_Pre : null, { blank: 5 })
                   ),
                   pdf.block(
                     pdf.field('OCT Post MLA'),
-                    pdf.input(this.data.sectionJ.PciLesions[0].SB_OCT_Post, { blank: 5 })
+                    pdf.input(data ? data.SB_OCT_Post : null, { blank: 5 })
                   )
                 ),
                 pdf.block(
@@ -3118,45 +3153,36 @@ export class CathPciReport {
                   ' Yes, ',
                   pdf.field('Stent(s) Deployed'),
                   pdf.tab(),
-                  pdf.radio('No', this.data.sectionJ.PciLesions[0].StentDeployed),
+                  pdf.radio('No', data ? data.StentDeployed : null),
                   pdf.tab(),
-                  pdf.radio('Yes', this.data.sectionJ.PciLesions[0].StentDeployed)
+                  pdf.radio('Yes', data ? data.StentDeployed : null)
                 ),
                 pdf.block(
                   pdf.tab(3),
                   pdf.arrowIf(),
                   ' Yes, ',
                   pdf.field('Number of Stent Used'),
-                  pdf.input(this.data.sectionJ.PciLesions[0].NumberStentUsed)
+                  pdf.input(data ? data.NumberStentUsed : null)
                 ),
                 pdf.block(
                   pdf.tab(3),
                   pdf.arrowIf(),
                   ' Yes, ',
                   pdf.field('Stent Deployed Strategy'),
-                  pdf.check(
-                    'Direct stenting',
-                    this.data.sectionJ.PciLesions[0].StentDeployedStrategy
-                  )
+                  pdf.check('Direct stenting', data ? data.StentDeployedStrategy : null)
                 ),
                 pdf.block(
                   pdf.tab(5),
-                  pdf.check(
-                    'Elective stenting',
-                    this.data.sectionJ.PciLesions[0].StentDeployedStrategy
-                  ),
+                  pdf.check('Elective stenting', data ? data.StentDeployedStrategy : null),
                   pdf.tab(),
-                  pdf.check(
-                    'Bailout stenting',
-                    this.data.sectionJ.PciLesions[0].StentDeployedStrategy
-                  )
+                  pdf.check('Bailout stenting', data ? data.StentDeployedStrategy : null)
                 ),
                 pdf.block(
                   pdf.tab(2),
                   pdf.arrowIf(),
                   ' Yes, ',
                   pdf.field('Stenosis (Post-Intervention)', { annotation: '8025' }),
-                  pdf.input(this.data.sectionJ.PciLesions[0].StenosisPostProc, { blank: 6 }),
+                  pdf.input(data ? data.StenosisPostProc : null, { blank: 6 }),
                   ' %'
                 ),
                 pdf.block(
@@ -3167,22 +3193,35 @@ export class CathPciReport {
                 ),
                 pdf.block(
                   pdf.tab(4),
-                  pdf.radio('TIMI-0', this.data.sectionJ.PciLesions[0].PostProcTIMI),
+                  pdf.radio('TIMI-0', data ? data.PostProcTIMI : null),
                   pdf.tab(),
-                  pdf.radio('TIMI-1', this.data.sectionJ.PciLesions[0].PostProcTIMI),
+                  pdf.radio('TIMI-1', data ? data.PostProcTIMI : null),
                   pdf.tab(),
-                  pdf.radio('TIMI-2', this.data.sectionJ.PciLesions[0].PostProcTIMI),
+                  pdf.radio('TIMI-2', data ? data.PostProcTIMI : null),
                   pdf.tab(),
-                  pdf.radio('TIMI-3', this.data.sectionJ.PciLesions[0].PostProcTIMI)
+                  pdf.radio('TIMI-3', data ? data.PostProcTIMI : null)
                 ),
+                {
+                  canvas: [
+                    {
+                      type: 'line',
+                      x1: 18,
+                      y1: -290,
+                      x2: 18,
+                      y2: -23,
+                      lineWidth: 0.5,
+                      color: 'gray'
+                    }
+                  ]
+                },
                 pdf.lineHalf(),
                 pdf.emptyLine(),
                 pdf.block(
                   pdf.field('Final Adjuctive Balloon Angioplasty'),
                   pdf.tab(),
-                  pdf.radio('No', this.data.sectionJ.PciLesions[0].FinalAdjBalAngioplasty),
+                  pdf.radio('No', data ? data.FinalAdjBalAngioplasty : null),
                   pdf.tab(),
-                  pdf.radio('Yes', this.data.sectionJ.PciLesions[0].FinalAdjBalAngioplasty)
+                  pdf.radio('Yes', data ? data.FinalAdjBalAngioplasty : null)
                 ),
                 pdf.block(
                   pdf.tab(),
@@ -3190,9 +3229,9 @@ export class CathPciReport {
                   ' Yes, ',
                   pdf.field('Proximal Optimization'),
                   pdf.tab(),
-                  pdf.radio('No', this.data.sectionJ.PciLesions[0].ProxOptimize),
+                  pdf.radio('No', data ? data.ProxOptimize : null),
                   pdf.tab(),
-                  pdf.radio('Yes', this.data.sectionJ.PciLesions[0].ProxOptimize)
+                  pdf.radio('Yes', data ? data.ProxOptimize : null)
                 ),
                 pdf.block(
                   pdf.tab(),
@@ -3200,9 +3239,9 @@ export class CathPciReport {
                   ' Yes, ',
                   pdf.field('Final Kissing Balloon Inflation'),
                   pdf.tab(),
-                  pdf.radio('No', this.data.sectionJ.PciLesions[0].FinalKissBalloon),
+                  pdf.radio('No', data ? data.FinalKissBalloon : null),
                   pdf.tab(),
-                  pdf.radio('Yes', this.data.sectionJ.PciLesions[0].FinalKissBalloon)
+                  pdf.radio('Yes', data ? data.FinalKissBalloon : null)
                 )
               )
             ],
@@ -3213,9 +3252,9 @@ export class CathPciReport {
                 pdf.block(
                   pdf.field('Complication During PCI'),
                   pdf.tab(),
-                  pdf.radio('No', this.data.sectionJ.PciLesions[0].ComplicationPCI),
+                  pdf.radio('No', data ? data.ComplicationPCI : null),
                   pdf.tab(),
-                  pdf.radio('Yes', this.data.sectionJ.PciLesions[0].ComplicationPCI),
+                  pdf.radio('Yes', data ? data.ComplicationPCI : null),
                   pdf.tab(4),
                   pdf.arrowIf(),
                   ' Yes, ',
@@ -3225,174 +3264,132 @@ export class CathPciReport {
                   pdf.columns(
                     { text: '', width: 9 },
                     pdf.stack(
-                      pdf.check(
-                        'Abrupt Vessel Closure',
-                        this.data.sectionJ.PciLesions[0].ComplicationPCIDetail
+                      pdf.check('Abrupt Vessel Closure', data ? data.ComplicationPCIDetail : null),
+                      pdf.block(
+                        pdf.tab(2),
+                        pdf.radio('Re-established flow', data ? data.AbruptVesselClosure : null)
                       ),
                       pdf.block(
                         pdf.tab(2),
-                        pdf.radio(
-                          'Re-established flow',
-                          this.data.sectionJ.PciLesions[0].AbruptVesselClosure
-                        )
-                      ),
-                      pdf.block(
-                        pdf.tab(2),
-                        pdf.radio(
-                          'Observation',
-                          this.data.sectionJ.PciLesions[0].AbruptVesselClosure
-                        )
+                        pdf.radio('Observation', data ? data.AbruptVesselClosure : null)
                       ),
                       pdf.check(
                         'Coronary Artery Perforation',
-                        this.data.sectionJ.PciLesions[0].ComplicationPCIDetail
+                        data ? data.ComplicationPCIDetail : null
                       ),
                       pdf.block(
                         pdf.tab(2),
-                        pdf.radio(
-                          'Stent grafting',
-                          this.data.sectionJ.PciLesions[0].CoronaryArteryPerforation
-                        )
+                        pdf.radio('Stent grafting', data ? data.CoronaryArteryPerforation : null)
                       ),
                       pdf.block(
                         pdf.tab(2),
                         pdf.radio(
                           'Prolong ballon inflation',
-                          this.data.sectionJ.PciLesions[0].CoronaryArteryPerforation
+                          data ? data.CoronaryArteryPerforation : null
                         )
                       ),
                       pdf.block(
                         pdf.tab(2),
                         pdf.radio(
                           'Distal embolization (Coil)',
-                          this.data.sectionJ.PciLesions[0].CoronaryArteryPerforation
+                          data ? data.CoronaryArteryPerforation : null
                         )
                       ),
                       pdf.block(
                         pdf.tab(2),
                         pdf.radio(
                           'Distal embolization (Fat)',
-                          this.data.sectionJ.PciLesions[0].CoronaryArteryPerforation
+                          data ? data.CoronaryArteryPerforation : null
                         )
                       ),
                       pdf.block(
                         pdf.tab(2),
                         pdf.radio(
                           'Distal embolization (Clot)',
-                          this.data.sectionJ.PciLesions[0].CoronaryArteryPerforation
+                          data ? data.CoronaryArteryPerforation : null
                         )
                       ),
                       pdf.block(
                         pdf.tab(2),
-                        pdf.radio(
-                          'Observation',
-                          this.data.sectionJ.PciLesions[0].CoronaryArteryPerforation
-                        )
+                        pdf.radio('Observation', data ? data.CoronaryArteryPerforation : null)
                       )
                     ),
                     pdf.stack(
                       pdf.check(
                         'Coronary Artery Dissection',
-                        this.data.sectionJ.PciLesions[0].ComplicationPCIDetail
+                        data ? data.ComplicationPCIDetail : null
                       ),
                       pdf.block(
                         pdf.tab(2),
-                        pdf.radio(
-                          'Stenting',
-                          this.data.sectionJ.PciLesions[0].CoronaryArteryDissection
-                        )
+                        pdf.radio('Stenting', data ? data.CoronaryArteryDissection : null)
                       ),
                       pdf.block(
                         pdf.tab(2),
                         pdf.radio(
                           'Prolong ballon inflation',
-                          this.data.sectionJ.PciLesions[0].CoronaryArteryDissection
+                          data ? data.CoronaryArteryDissection : null
                         )
                       ),
                       pdf.block(
                         pdf.tab(2),
-                        pdf.radio(
-                          'Observation',
-                          this.data.sectionJ.PciLesions[0].CoronaryArteryDissection
-                        )
+                        pdf.radio('Observation', data ? data.CoronaryArteryDissection : null)
                       ),
                       pdf.check(
                         'Longitudinal Stent Deformation',
-                        this.data.sectionJ.PciLesions[0].ComplicationPCIDetail
+                        data ? data.ComplicationPCIDetail : null
                       ),
                       pdf.block(
                         pdf.tab(2),
                         pdf.radio(
                           'Re-ballon inflation',
-                          this.data.sectionJ.PciLesions[0].LongitudinalStentDeformation
+                          data ? data.LongitudinalStentDeformation : null
                         )
                       ),
                       pdf.block(
                         pdf.tab(2),
                         pdf.radio(
                           'Repeat stent implantation',
-                          this.data.sectionJ.PciLesions[0].LongitudinalStentDeformation
+                          data ? data.LongitudinalStentDeformation : null
                         )
                       ),
                       pdf.block(
                         pdf.tab(2),
-                        pdf.radio(
-                          'Observation',
-                          this.data.sectionJ.PciLesions[0].LongitudinalStentDeformation
-                        )
+                        pdf.radio('Observation', data ? data.LongitudinalStentDeformation : null)
                       ),
-                      pdf.check(
-                        'Thrombus Embolization',
-                        this.data.sectionJ.PciLesions[0].ComplicationPCIDetail
-                      ),
+                      pdf.check('Thrombus Embolization', data ? data.ComplicationPCIDetail : null),
                       pdf.check(
                         'Disruption of Collateral flow',
-                        this.data.sectionJ.PciLesions[0].ComplicationPCIDetail
+                        data ? data.ComplicationPCIDetail : null
                       )
                     ),
                     pdf.stack(
-                      pdf.check(
-                        'Burr Entrapment',
-                        this.data.sectionJ.PciLesions[0].ComplicationPCIDetail
+                      pdf.check('Burr Entrapment', data ? data.ComplicationPCIDetail : null),
+                      pdf.block(
+                        pdf.tab(2),
+                        pdf.radio('Success manual pullback', data ? data.BurrEntrapment : null)
                       ),
                       pdf.block(
                         pdf.tab(2),
-                        pdf.radio(
-                          'Success manual pullback',
-                          this.data.sectionJ.PciLesions[0].BurrEntrapment
-                        )
+                        pdf.radio('Coronary artery bypass graft', data ? data.BurrEntrapment : null)
                       ),
                       pdf.block(
                         pdf.tab(2),
-                        pdf.radio(
-                          'Coronary artery bypass graft',
-                          this.data.sectionJ.PciLesions[0].BurrEntrapment
-                        )
+                        pdf.radio('Observation', data ? data.BurrEntrapment : null)
+                      ),
+                      pdf.check('Device Embolization', data ? data.ComplicationPCIDetail : null),
+                      pdf.block(
+                        pdf.tab(2),
+                        pdf.radio('Retrieve', data ? data.DeviceEmbolization : null)
                       ),
                       pdf.block(
                         pdf.tab(2),
-                        pdf.radio('Observation', this.data.sectionJ.PciLesions[0].BurrEntrapment)
-                      ),
-                      pdf.check(
-                        'Device Embolization',
-                        this.data.sectionJ.PciLesions[0].ComplicationPCIDetail
-                      ),
-                      pdf.block(
-                        pdf.tab(2),
-                        pdf.radio('Retrieve', this.data.sectionJ.PciLesions[0].DeviceEmbolization)
-                      ),
-                      pdf.block(
-                        pdf.tab(2),
-                        pdf.radio('Retain', this.data.sectionJ.PciLesions[0].DeviceEmbolization)
+                        pdf.radio('Retain', data ? data.DeviceEmbolization : null)
                       ),
                       pdf.check(
                         'Persistent Slow flow or No flow',
-                        this.data.sectionJ.PciLesions[0].ComplicationPCIDetail
+                        data ? data.ComplicationPCIDetail : null
                       ),
-                      pdf.check(
-                        'Intramural Hematoma',
-                        this.data.sectionJ.PciLesions[0].ComplicationPCIDetail
-                      )
+                      pdf.check('Intramural Hematoma', data ? data.ComplicationPCIDetail : null)
                     )
                   )
                 ),
@@ -3428,6 +3425,2584 @@ export class CathPciReport {
           ]
         }
       }
+    ];
+  }
+
+  private getDevice() {
+    const output = [];
+    const deviceLength = this.data.sectionJ.PciDevices.length;
+    const maxLength = deviceLength < maxDeviceLength ? maxDeviceLength : deviceLength;
+
+    for (let index = 0; index < maxLength; index++) {
+      let device = null;
+      if (index < deviceLength) {
+        device = this.data.sectionJ.PciDevices[index];
+      }
+      output.push(this.deviceLesion(device));
+    }
+    return output;
+  }
+
+  private deviceLesion(data: any) {
+    return [
+      data
+        ? pdf.blockStyle(
+            { style: 'deviceCell' },
+            pdf.input(data.ICDevCounter),
+            '. ',
+            pdf.input(data.ICDevID)
+          )
+        : { text: ' ', style: 'deviceCell' },
+      data
+        ? pdf.blockStyle({ style: 'deviceCell' }, pdf.input(data.ICDevUDI))
+        : { text: ' ', style: 'deviceCell' },
+      data
+        ? pdf.blockStyle({ style: 'deviceCell' }, pdf.inputArray(data.ICDevCounterAssn))
+        : { text: ' ', style: 'deviceCell' },
+      data
+        ? pdf.blockStyle(
+            { style: 'deviceCell', alignment: 'right' },
+            pdf.input(data.DeviceDiameter, { blank: 4 }),
+            ' mm'
+          )
+        : { text: ' ', style: 'deviceCell' },
+      data
+        ? pdf.blockStyle(
+            { style: 'deviceCell', alignment: 'right' },
+            pdf.input(data.DeviceLength, { blank: 4 }),
+            ' mm'
+          )
+        : { text: ' ', style: 'deviceCell' }
+    ];
+  }
+
+  private sectionK(): pdfMake.Content[][] {
+    return [
+      [
+        pdf.blockStyle(
+          // { style: 'section', pageBreak: 'before' },
+          { style: 'section' },
+          pdf.section('K. INTRA AND POST-PROCEDURE EVENTS'),
+          {
+            text: ' (Complete for Each Cath Lab Visit)',
+            bold: false
+          }
+        )
+      ],
+      [
+        pdf.stack(
+          pdf.emptyLine(),
+          {
+            margin: [0, 0, 0, 5],
+            table: {
+              widths: '*',
+              body: [
+                [
+                  pdf.blockStyle(
+                    { style: 'tableHeaderWithAnno' },
+                    { text: 'Event(s)', bold: true },
+                    `⁹⁰⁰¹`
+                  ),
+                  pdf.blockStyle(
+                    { style: 'tableHeaderWithAnno' },
+                    { text: 'Event(s) Occured', bold: true },
+                    `⁹⁰⁰²`
+                  ),
+                  pdf.blockStyle(
+                    { style: 'tableHeaderWithAnno' },
+                    pdf.arrowIf(),
+                    ' Yes, ',
+                    { text: 'Event Date/Time', bold: true },
+                    `⁹⁰⁰³`
+                  )
+                ],
+                [
+                  pdf.stack(
+                    pdf.emptyLine(),
+                    { text: 'Bleeding – Access Site', style: 'field' },
+                    { text: 'Bleeding – Gastrointestinal', style: 'field' },
+                    { text: 'Bleeding – Genitourinary', style: 'field' },
+                    { text: 'Bleeding – Hematoma at Access Site', style: 'field' },
+                    { text: 'Bleeding – Other', style: 'field' },
+                    { text: 'Bleeding – Retroperitoneal', style: 'field' },
+                    { text: 'Cardiac Arrest', style: 'field' },
+                    { text: 'Cardiac Tamponade', style: 'field' },
+                    { text: 'Cardiogenic Shock', style: 'field' },
+                    { text: 'Heart Failure', style: 'field' },
+                    { text: 'New Requirement for Dialysis', style: 'field' },
+                    { text: 'Other Vascular Complications Req Tx', style: 'field' },
+                    { text: 'Stroke – Hemorrhagic', style: 'field' },
+                    { text: 'Stroke – Ischemic', style: 'field' },
+                    { text: 'Stroke – Undetermined', style: 'field' },
+                    { text: 'Myocardial Infarction', style: 'field' }
+                  ),
+                  pdf.stack(
+                    pdf.emptyLine(),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionK.K_BleedingAccessSite),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionK.K_BleedingAccessSite)
+                    ),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionK.K_BleedingGI),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionK.K_BleedingGI)
+                    ),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionK.K_BleedingGU),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionK.K_BleedingGU)
+                    ),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionK.K_BleedingHematoma),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionK.K_BleedingHematoma)
+                    ),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionK.K_BleedingOther),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionK.K_BleedingOther)
+                    ),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionK.K_BleedingRetro),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionK.K_BleedingRetro)
+                    ),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionK.K_CardiacArrest),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionK.K_CardiacArrest)
+                    ),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionK.K_CardiacTamponade),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionK.K_CardiacTamponade)
+                    ),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionK.K_CardiogenicShock),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionK.K_CardiogenicShock)
+                    ),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionK.K_HeartFailure),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionK.K_HeartFailure)
+                    ),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionK.K_NewDialysis),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionK.K_NewDialysis)
+                    ),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionK.K_OtherVascular),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionK.K_OtherVascular)
+                    ),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionK.K_StrokeHemorrhage),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionK.K_StrokeHemorrhage)
+                    ),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionK.K_StrokeIschemic),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionK.K_StrokeIschemic)
+                    ),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionK.K_StrokeUndetermined),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionK.K_StrokeUndetermined)
+                    ),
+                    pdf.blockStyle(
+                      { alignment: 'center' },
+                      pdf.radio('No', this.data.sectionK.K_MyocardialInfarction),
+                      pdf.tab(),
+                      pdf.radio('Yes', this.data.sectionK.K_MyocardialInfarction)
+                    )
+                  ),
+                  pdf.stack(
+                    pdf.emptyLine(),
+                    pdf.prop(pdf.date(this.data.sectionK.K_BleedingAccessSiteDT, 'datetime'), {
+                      alignment: 'center'
+                    }),
+                    pdf.prop(pdf.date(this.data.sectionK.K_BleedingGIDT, 'datetime'), {
+                      alignment: 'center'
+                    }),
+                    pdf.prop(pdf.date(this.data.sectionK.K_BleedingGUDT, 'datetime'), {
+                      alignment: 'center'
+                    }),
+                    pdf.prop(pdf.date(this.data.sectionK.K_BleedingHematomaDT, 'datetime'), {
+                      alignment: 'center'
+                    }),
+                    pdf.prop(pdf.date(this.data.sectionK.K_BleedingOtherDT, 'datetime'), {
+                      alignment: 'center'
+                    }),
+                    pdf.prop(pdf.date(this.data.sectionK.K_BleedingRetroDT, 'datetime'), {
+                      alignment: 'center'
+                    }),
+                    pdf.prop(pdf.date(this.data.sectionK.K_CardiacArrestDT, 'datetime'), {
+                      alignment: 'center'
+                    }),
+                    pdf.prop(pdf.date(this.data.sectionK.K_CardiacTamponadeDT, 'datetime'), {
+                      alignment: 'center'
+                    }),
+                    pdf.prop(pdf.date(this.data.sectionK.K_CardiogenicShockDT, 'datetime'), {
+                      alignment: 'center'
+                    }),
+                    pdf.prop(pdf.date(this.data.sectionK.K_HeartFailureDT, 'datetime'), {
+                      alignment: 'center'
+                    }),
+                    pdf.prop(pdf.date(this.data.sectionK.K_NewDialysisDT, 'datetime'), {
+                      alignment: 'center'
+                    }),
+                    pdf.prop(pdf.date(this.data.sectionK.K_OtherVascularDT, 'datetime'), {
+                      alignment: 'center'
+                    }),
+                    pdf.prop(pdf.date(this.data.sectionK.K_StrokeHemorrhageDT, 'datetime'), {
+                      alignment: 'center'
+                    }),
+                    pdf.prop(pdf.date(this.data.sectionK.K_StrokeIschemicDT, 'datetime'), {
+                      alignment: 'center'
+                    }),
+                    pdf.prop(pdf.date(this.data.sectionK.K_StrokeUndeterminedDT, 'datetime'), {
+                      alignment: 'center'
+                    }),
+                    pdf.prop(pdf.date(this.data.sectionK.K_MyocardialInfarctionDT, 'datetime'), {
+                      alignment: 'center'
+                    })
+                  )
+                ]
+              ]
+            }
+          },
+          pdf.block(
+            pdf.arrowIf(),
+            ` Myocardial Infarction = 'Yes', `,
+            pdf.field('Myocardial Infarction Criteria')
+          ),
+          pdf.block(
+            pdf.tab(2),
+            pdf.radio(
+              'Absolute rise in cTn (form baseline) >= 35x(URL)',
+              this.data.sectionK.K_MyocardialInfarctionCriteria
+            )
+          ),
+          pdf.block(
+            pdf.tab(2),
+            pdf.radio(
+              'Absolute rise in cTn (form baseline) >= 70x(URL)',
+              this.data.sectionK.K_MyocardialInfarctionCriteria
+            )
+          ),
+          pdf.line(),
+          pdf.emptyLine(),
+          pdf.block(
+            pdf.field('RBC Transfusion', { annotation: '9275' }),
+            pdf.tab(),
+            pdf.radio('No', this.data.sectionK.PostTransfusion),
+            pdf.tab(),
+            pdf.radio('Yes', this.data.sectionK.PostTransfusion)
+          ),
+          pdf.block(
+            pdf.tab(),
+            pdf.arrowIf(),
+            ' Yes, ',
+            pdf.field('Number of Units Transfused', { annotation: '7026' }),
+            pdf.input(this.data.sectionK.PRBCUnits)
+          ),
+          pdf.block(
+            pdf.tab(),
+            pdf.arrowIf(),
+            ' Yes, ',
+            pdf.field('Transfusion PCI', { annotation: '9277' }),
+            '(within 72 hours)',
+            pdf.tab(),
+            pdf.radio('No', this.data.sectionK.TransfusPostPCI),
+            pdf.tab(),
+            pdf.radio('Yes', this.data.sectionK.TransfusPostPCI)
+          ),
+          pdf.block(
+            pdf.tab(),
+            pdf.arrowIf(),
+            ' Yes, ',
+            pdf.field('Transfusion Surgical', { annotation: '9278' }),
+            '(within 72 hours)',
+            pdf.tab(),
+            pdf.radio('No', this.data.sectionK.TransfusionPostSurg),
+            pdf.tab(),
+            pdf.radio('Yes', this.data.sectionK.TransfusionPostSurg)
+          )
+        )
+      ]
+    ];
+  }
+
+  private sectionL(): pdfMake.Content[][] {
+    return [
+      [pdf.blockStyle({ pageBreak: 'before' }, pdf.section('L. DISCHARGE'))],
+      [
+        pdf.stackStyle(
+          { border: [true, true, true, false] },
+          pdf.emptyLine(),
+          pdf.block(
+            pdf.field('Intervention(s) this Hospitalization', { annotation: '10030' }),
+            pdf.tab(),
+            pdf.radio('No', this.data.sectionL.HospIntervention),
+            pdf.tab(),
+            pdf.radio('Yes', this.data.sectionL.HospIntervention)
+          ),
+          pdf.block(
+            pdf.tab(),
+            pdf.arrowIf(),
+            ' Yes, ',
+            pdf.field('Intervention Type', { annotation: '10031' }),
+            '(Select all that apply)'
+          ),
+          pdf.columns(
+            { text: '', width: 26 },
+            pdf.stack(
+              pdf.check('CABG', this.data.sectionL.HospInterventionType),
+              pdf.check('Valvular Intervention', this.data.sectionL.HospInterventionType),
+              pdf.check('Cardiac Surgery (non CABG)', this.data.sectionL.HospInterventionType),
+              pdf.check(
+                'Structural Heart Intervention (non-valvular)',
+                this.data.sectionL.HospInterventionType
+              )
+            ),
+            pdf.stack(
+              pdf.check('Surgery (Non Cardiac)', this.data.sectionL.HospInterventionType),
+              pdf.check('EP Study', this.data.sectionL.HospInterventionType),
+              pdf.check('Other', this.data.sectionL.HospInterventionType)
+            )
+          ),
+          pdf.line(),
+          pdf.emptyLine(),
+          pdf.columns(
+            pdf.blockStyle(
+              { margin: [0, 22, 0, 0], width: 100 },
+              pdf.tab(),
+              pdf.arrowIf(),
+              ` CAGB = 'Yes'`
+            ),
+            pdf.stack(
+              pdf.emptyLine(),
+              pdf.columns(
+                pdf.field('CABG Status', { annotation: '10035', width: 100 }),
+                pdf.block(
+                  pdf.radio('Elective', this.data.sectionL.CABGStatus),
+                  pdf.tab(),
+                  pdf.radio('Urgent', this.data.sectionL.CABGStatus),
+                  pdf.tab(),
+                  pdf.radio('Emergency', this.data.sectionL.CABGStatus),
+                  pdf.tab(),
+                  pdf.radio('Salvage', this.data.sectionL.CABGStatus)
+                )
+              ),
+              pdf.columns(
+                pdf.field('CABG Indication', { annotation: '10036', width: 100 }),
+                pdf.stackStyle(
+                  { width: 220 },
+                  pdf.radio('PCI/CABG Hybrid Procedure', this.data.sectionL.CABGIndication),
+                  pdf.radio(
+                    'Recommendation from Dx Cath (instead of PCI)',
+                    this.data.sectionL.CABGIndication
+                  )
+                ),
+                pdf.stack(
+                  pdf.radio('PCI Failure', this.data.sectionL.CABGIndication),
+                  pdf.radio('PCI Complication', this.data.sectionL.CABGIndication)
+                )
+              ),
+              pdf.columns(
+                pdf.field('CABG Date/Time', { annotation: '10011', width: 100 }),
+                pdf.date(this.data.sectionL.CABGDateTime, 'datetime')
+              )
+            )
+          ),
+          pdf.line(),
+          pdf.emptyLine(),
+          pdf.columns(
+            pdf.block(
+              pdf.field('Discharge Date/Time', { annotation: '10101' }),
+              pdf.date(this.data.sectionL.DCDateTime, 'datetime')
+            ),
+            pdf.block(
+              pdf.field('Discharge Provider', { annotation: '10070,10071' }),
+              pdf.input(this.data.sectionL.DCProvider)
+            )
+          ),
+          pdf.block(
+            pdf.field('Comfort Measures Only', { annotation: '10075' }),
+            pdf.tab(),
+            pdf.radio('No', this.data.sectionL.DC_Comfort),
+            pdf.tab(),
+            pdf.radio('Yes', this.data.sectionL.DC_Comfort)
+          ),
+          pdf.block(
+            pdf.field('Discharge Status', { annotation: '10105' }),
+            pdf.tab(),
+            pdf.radio('Alive', this.data.sectionL.DCStatus),
+            pdf.tab(),
+            pdf.radio('Deceased', this.data.sectionL.DCStatus)
+          ),
+          pdf.columns(
+            pdf.blockStyle(
+              { width: 165 },
+              pdf.tab(),
+              pdf.arrowIf(),
+              ' Alive, ',
+              pdf.field('Discharge Location', { annotation: '10110' })
+            ),
+            pdf.stackStyle(
+              { width: 150 },
+              pdf.radio('Home', this.data.sectionL.DCLocation),
+              pdf.radio('Extended care/TCU/rehab', this.data.sectionL.DCLocation),
+              pdf.radio('Other acute care hospital', this.data.sectionL.DCLocation)
+            ),
+            pdf.stack(
+              pdf.radio('Skilled Nursing facility', this.data.sectionL.DCLocation),
+              pdf.radio('Other', this.data.sectionL.DCLocation),
+              pdf.radio('Left against medical advice (AMA)', this.data.sectionL.DCLocation)
+            )
+          ),
+          pdf.block(
+            pdf.tab(2),
+            pdf.arrowIf(),
+            ' Other acute care hospital, ',
+            pdf.field('Transferred for CABG', { annotation: '10111' }),
+            pdf.radio('No', this.data.sectionL.CABGTransfer),
+            pdf.space(2),
+            pdf.radio('Yes', this.data.sectionL.CABGTransfer)
+          ),
+          pdf.block(
+            pdf.tab(2),
+            pdf.arrowIf(),
+            ' NOT Left against medical advice (AMA) OR Other acute care hospital, ',
+            pdf.field('CABG Planned after Discharge', { annotation: '10112' }),
+            pdf.radio('No', this.data.sectionL.CABGPlannedDC),
+            pdf.space(),
+            pdf.radio('Yes', this.data.sectionL.CABGPlannedDC)
+          ),
+          pdf.block(
+            pdf.tab(),
+            pdf.arrowIf(),
+            ' Alive, ',
+            pdf.field('Hospice Care', { annotation: '10115' }),
+            pdf.tab(),
+            pdf.radio('No', this.data.sectionL.DCHospice),
+            pdf.tab(),
+            pdf.radio('Yes', this.data.sectionL.DCHospice)
+          ),
+          pdf.block(
+            pdf.tab(),
+            pdf.arrowIf(),
+            ' Alive, ',
+            pdf.field('Cardiac Rehabilitation Referral', { annotation: '10116' })
+          ),
+          pdf.columns(
+            { text: '', width: 26 },
+            pdf.stack(
+              pdf.radio('No - Reason Not Documented', this.data.sectionL.DC_CardRehab),
+              pdf.radio('No - Medical Reason Documented', this.data.sectionL.DC_CardRehab)
+            ),
+            pdf.stack(
+              pdf.radio(
+                'No - Health Care System Reason Documented',
+                this.data.sectionL.DC_CardRehab
+              ),
+              pdf.radio('Yes', this.data.sectionL.DC_CardRehab)
+            )
+          )
+        )
+      ],
+      [
+        pdf.stackStyle(
+          { border: [true, false, true, false], fillColor: '#eeeeee' },
+          pdf.emptyLine(),
+          pdf.columns(
+            { text: '', width: 9 },
+            pdf.prop(pdf.arrowIf(), { width: 19 }),
+            pdf.block(
+              'Deceased ',
+              { text: 'AND ', bold: true },
+              'any ',
+              {
+                text: '(CARDIAC ARREST OUT OF HEALTHCARE FACILITY',
+                bold: true
+              },
+              `⁴⁶³⁰ = 'Yes' OR `,
+              {
+                text: 'CARDIAC ARREST AT TRANSFERRING HEALTHCARE FACILITY',
+                bold: true
+              },
+              `⁴⁶³⁵ = 'Yes' OR `,
+              {
+                text: 'CARDIAC ARREST AT THIS FACILITY',
+                bold: true
+              },
+              `⁷³⁴⁰ = 'Yes'), `,
+              pdf.field('Level of Consciousness', { annotation: '10117' }),
+              '(highest s/p cardiac arrest)'
+            )
+          ),
+          pdf.block(
+            pdf.tab(4),
+            pdf.radio('(A) Alert', this.data.sectionL.DC_LOC),
+            pdf.tab(),
+            pdf.radio('(V) Verbal', this.data.sectionL.DC_LOC),
+            pdf.tab(),
+            pdf.radio('(P) Pain', this.data.sectionL.DC_LOC),
+            pdf.tab(),
+            pdf.radio('(U) Unresponsive', this.data.sectionL.DC_LOC),
+            pdf.tab(),
+            pdf.radio('Unable to Assess', this.data.sectionL.DC_LOC)
+          ),
+          pdf.block(
+            pdf.tab(),
+            pdf.arrowIf(),
+            ' Deceased, ',
+            pdf.field('Death During the Procedure', { annotation: '10120' }),
+            pdf.tab(),
+            pdf.radio('No', this.data.sectionL.DeathProcedure),
+            pdf.tab(),
+            pdf.radio('Yes', this.data.sectionL.DeathProcedure)
+          ),
+          pdf.block(
+            pdf.tab(),
+            pdf.arrowIf(),
+            ' Deceased, ',
+            pdf.field('Cause of Death', { annotation: '10125' })
+          ),
+          pdf.columns(
+            { text: '', width: 35 },
+            pdf.stackStyle(
+              { width: 200 },
+              pdf.radio('Acute myocardial infarction', this.data.sectionL.DeathCause),
+              pdf.radio('Sudden cardiac death', this.data.sectionL.DeathCause),
+              pdf.radio('Heart failure', this.data.sectionL.DeathCause),
+              pdf.radio('Cardiovascular procedure', this.data.sectionL.DeathCause),
+              pdf.radio('Cardiovascular hemorrhage', this.data.sectionL.DeathCause),
+              pdf.radio('Other cardiovascular reason', this.data.sectionL.DeathCause),
+              pdf.radio('Non-cardiovascular procedure or surgery', this.data.sectionL.DeathCause)
+            ),
+            pdf.stackStyle(
+              { width: 120 },
+              pdf.radio('Pulmonary', this.data.sectionL.DeathCause),
+              pdf.radio('Neurological', this.data.sectionL.DeathCause),
+              pdf.radio('Hepatobiliary', this.data.sectionL.DeathCause),
+              pdf.radio('Pancreatic', this.data.sectionL.DeathCause),
+              pdf.radio('Renal', this.data.sectionL.DeathCause),
+              pdf.radio('Gastrointestinal', this.data.sectionL.DeathCause),
+              pdf.radio('Suicide', this.data.sectionL.DeathCause)
+            ),
+            pdf.stack(
+              pdf.radio('Trauma', this.data.sectionL.DeathCause),
+              pdf.radio('Stroke', this.data.sectionL.DeathCause),
+              pdf.radio('Malignancy', this.data.sectionL.DeathCause),
+              pdf.radio('Hemorrhage', this.data.sectionL.DeathCause),
+              pdf.radio('Infection', this.data.sectionL.DeathCause),
+              pdf.radio('Inflammatory/Immunologic', this.data.sectionL.DeathCause),
+              pdf.radio('Other non-cardiovascular reason', this.data.sectionL.DeathCause)
+            )
+          )
+        )
+      ],
+      // [{ text: 'art', border: [true, false, true, true] }]
+      [
+        pdf.stackStyle(
+          { border: [true, false, true, true] },
+          pdf.emptyLine(),
+          pdf.field('Device-oriented Composite End Point'),
+          pdf.columns(
+            { text: '', width: 35 },
+            pdf.stackStyle(
+              { width: 150 },
+              pdf.radio('None', this.data.sectionL.L_DeviceCompositeEP),
+              pdf.radio('Cardiac death', this.data.sectionL.L_DeviceCompositeEP)
+            ),
+            pdf.stack(
+              pdf.radio(
+                'MI (not clearly attribute to a non-target vessel)',
+                this.data.sectionL.L_DeviceCompositeEP
+              ),
+              pdf.radio(
+                'TLR - Target Lesion Revascularization',
+                this.data.sectionL.L_DeviceCompositeEP
+              )
+            )
+          ),
+          pdf.field('Patient-oriented Composite End Point'),
+          pdf.columns(
+            { text: '', width: 35 },
+            pdf.stackStyle(
+              { width: 150 },
+              pdf.radio('None', this.data.sectionL.L_PatientCompositeEP),
+              pdf.radio('All-cause mortality', this.data.sectionL.L_PatientCompositeEP)
+            ),
+            pdf.stack(
+              pdf.radio(
+                'Any MI (included non-target vessel territory)',
+                this.data.sectionL.L_PatientCompositeEP
+              ),
+              pdf.radio(
+                'Any repeat revascularization (includes all target and non-target vessels)',
+                this.data.sectionL.L_PatientCompositeEP
+              )
+            )
+          )
+        )
+      ],
+      [
+        pdf.stackStyle(
+          { style: 'subSection', pageBreak: 'before' },
+          pdf.block(
+            pdf.text('DISCHARGE MEDICATIONS', { bold: true }),
+            pdf.text(
+              ' (Prescrived at Discharge - Complete for Each Episode of Care in which a PCI was Attemped or Performed)',
+              { fontSize: 9 }
+            )
+          )
+        )
+      ],
+      [
+        pdf.stack(
+          pdf.emptyLine(),
+          pdf.text(
+            `Medications prescribed at discharge are not required for patients who expired, ` +
+              `discharged to "Other acute care Hospital", "AMA" or are receiving "Hospice Care".`
+          ),
+          {
+            table: {
+              widths: ['*', 90, 40, 40, 40, 40, 40, 40, 40],
+              headerRows: 2,
+              body: [
+                [
+                  pdf.blockStyle(
+                    { style: 'tableHeaderWithAnno', colSpan: 2, rowSpan: 2, margin: [0, 22, 0, 0] },
+                    pdf.text('Medication', { bold: true }),
+                    pdf.text('¹⁰²⁰⁰')
+                  ),
+                  '',
+                  pdf.blockStyle(
+                    { style: 'tableHeaderWithAnno', colSpan: 4, margin: [0, 5, 0, 0] },
+                    pdf.text('Prescribed', { bold: true }),
+                    pdf.text('¹⁰²⁰⁵')
+                  ),
+                  '',
+                  '',
+                  '',
+                  pdf.blockStyle(
+                    { style: 'tableHeaderWithAnno', colSpan: 3 },
+                    pdf.arrowIf(),
+                    ' No - Patient Reason, ',
+                    pdf.text('Rationale', { bold: true })
+                  ),
+                  '',
+                  ''
+                ],
+                [
+                  '',
+                  '',
+                  pdf.text('Yes - Prescribed', { style: 'medTableHeader', margin: [0, 5, 0, 0] }),
+                  pdf.text('No - No Reason', { style: 'medTableHeader', margin: [0, 5, 0, 0] }),
+                  pdf.text('No - Medical Reason', { style: 'medTableHeader' }),
+                  pdf.text('No - Patient Reason', { style: 'medTableHeader' }),
+                  pdf.text('Cost', { style: 'medTableHeader', margin: [0, 10, 0, 0] }),
+                  pdf.text('Alternative Therapy Preferred', { style: 'medTableHeader' }),
+                  pdf.text('Negative Side Effect', {
+                    style: 'medTableHeader',
+                    margin: [0, 5, 0, 0]
+                  })
+                ],
+                [
+                  pdf.text('Antiplatelet', { style: 'medCell', rowSpan: 2, margin: [0, 7, 0, 0] }),
+                  pdf.text('Aspirin', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionL.DC_Aspirin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionL.DC_Aspirin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionL.DC_Aspirin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionL.DC_Aspirin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionL.DC_AspirinRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Alternative Therapy Preferred', this.data.sectionL.DC_AspirinRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Negative Side Effect', this.data.sectionL.DC_AspirinRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  })
+                ],
+                [
+                  '',
+                  pdf.text('Vorapaxar', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionL.DC_Vorapaxar, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionL.DC_Vorapaxar, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionL.DC_Vorapaxar, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionL.DC_Vorapaxar, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionL.DC_VorapaxarRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Alternative Therapy Preferred', this.data.sectionL.DC_VorapaxarRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Negative Side Effect', this.data.sectionL.DC_VorapaxarRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  })
+                ],
+                [
+                  pdf.text('P2Y12 Inhibitors', {
+                    style: 'medCell',
+                    rowSpan: 4,
+                    margin: [0, 18, 0, 0]
+                  }),
+                  pdf.text('Clopidogrel', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionL.DC_Clopidogrel, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionL.DC_Clopidogrel, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionL.DC_Clopidogrel, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionL.DC_Clopidogrel, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionL.DC_ClopidogrelRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Alternative Therapy Preferred', this.data.sectionL.DC_ClopidogrelRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Negative Side Effect', this.data.sectionL.DC_ClopidogrelRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  })
+                ],
+                [
+                  '',
+                  pdf.text('Prasugrel', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionL.DC_Prasugrel, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionL.DC_Prasugrel, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionL.DC_Prasugrel, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionL.DC_Prasugrel, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionL.DC_PrasugrelRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Alternative Therapy Preferred', this.data.sectionL.DC_PrasugrelRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Negative Side Effect', this.data.sectionL.DC_PrasugrelRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  })
+                ],
+                [
+                  '',
+                  pdf.text('Ticagrelor', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionL.DC_Ticagrelor, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionL.DC_Ticagrelor, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionL.DC_Ticagrelor, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionL.DC_Ticagrelor, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionL.DC_TicagrelorRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Alternative Therapy Preferred', this.data.sectionL.DC_TicagrelorRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Negative Side Effect', this.data.sectionL.DC_TicagrelorRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  })
+                ],
+                [
+                  '',
+                  pdf.text('Ticlopidine', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionL.DC_Ticlopidine, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionL.DC_Ticlopidine, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionL.DC_Ticlopidine, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionL.DC_Ticlopidine, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionL.DC_TiclopidineRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Alternative Therapy Preferred', this.data.sectionL.DC_TiclopidineRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Negative Side Effect', this.data.sectionL.DC_TiclopidineRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  })
+                ],
+                [
+                  pdf.text('Statin', { style: 'medCell' }),
+                  pdf.text('Statin (Any)', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionL.DC_Statin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionL.DC_Statin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionL.DC_Statin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionL.DC_Statin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionL.DC_StatinRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Alternative Therapy Preferred', this.data.sectionL.DC_StatinRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Negative Side Effect', this.data.sectionL.DC_StatinRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  })
+                ],
+                [
+                  pdf.text('Non-Statin', { style: 'medCell' }),
+                  pdf.text('Non-Statin (Any)', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionL.DC_NonStatin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionL.DC_NonStatin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionL.DC_NonStatin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionL.DC_NonStatin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionL.DC_NonStatinRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Alternative Therapy Preferred', this.data.sectionL.DC_NonStatinRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Negative Side Effect', this.data.sectionL.DC_NonStatinRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  })
+                ],
+                [
+                  pdf.text('PCSK9 Inhibitors', {
+                    style: 'medCell',
+                    rowSpan: 2,
+                    margin: [0, 3, 0, 0]
+                  }),
+                  pdf.text('Alirocumab', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionL.DC_Alirocumab, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionL.DC_Alirocumab, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionL.DC_Alirocumab, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionL.DC_Alirocumab, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionL.DC_AlirocumabRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Alternative Therapy Preferred', this.data.sectionL.DC_AlirocumabRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Negative Side Effect', this.data.sectionL.DC_AlirocumabRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  })
+                ],
+                [
+                  '',
+                  pdf.text('Evolocumab', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionL.DC_Evolocumab, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionL.DC_Evolocumab, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionL.DC_Evolocumab, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionL.DC_Evolocumab, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionL.DC_EvolocumabRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Alternative Therapy Preferred', this.data.sectionL.DC_EvolocumabRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Negative Side Effect', this.data.sectionL.DC_EvolocumabRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  })
+                ],
+                [
+                  pdf.text('Beta Blockers', { style: 'medCell' }),
+                  pdf.text('Beta Blocker (Any)', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionL.DC_BetaBlocker, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionL.DC_BetaBlocker, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionL.DC_BetaBlocker, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionL.DC_BetaBlocker, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionL.DC_BetaBlockerRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Alternative Therapy Preferred', this.data.sectionL.DC_BetaBlockerRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Negative Side Effect', this.data.sectionL.DC_BetaBlockerRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  })
+                ],
+                [
+                  pdf.text('ACE Inhibitors', { style: 'medCell' }),
+                  pdf.text('ACE Inhibitors (Any)', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionL.DC_ACEI, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionL.DC_ACEI, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionL.DC_ACEI, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionL.DC_ACEI, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionL.DC_ACEIRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Alternative Therapy Preferred', this.data.sectionL.DC_ACEIRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Negative Side Effect', this.data.sectionL.DC_ACEIRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  })
+                ],
+                [
+                  pdf.text('ARB (Angiotension Receptors Blockers)', { style: 'medCell' }),
+                  pdf.text('ARB (Any)', { style: 'tableCell', margin: [0, 15, 0, 0] }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionL.DC_ARB, {
+                    alias: '',
+                    style: 'radioInTable',
+                    margin: [0, 15, 0, 0]
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionL.DC_ARB, {
+                    alias: '',
+                    style: 'radioInTable',
+                    margin: [0, 15, 0, 0]
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionL.DC_ARB, {
+                    alias: '',
+                    style: 'radioInTable',
+                    margin: [0, 15, 0, 0]
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionL.DC_ARB, {
+                    alias: '',
+                    style: 'radioInTable',
+                    margin: [0, 15, 0, 0]
+                  }),
+                  pdf.radio('Cost', this.data.sectionL.DC_ARBRN, {
+                    alias: '',
+                    style: 'radioInTable',
+                    margin: [0, 15, 0, 0]
+                  }),
+                  pdf.radio('Alternative Therapy Preferred', this.data.sectionL.DC_ARBRN, {
+                    alias: '',
+                    style: 'radioInTable',
+                    margin: [0, 15, 0, 0]
+                  }),
+                  pdf.radio('Negative Side Effect', this.data.sectionL.DC_ARBRN, {
+                    alias: '',
+                    style: 'radioInTable',
+                    margin: [0, 15, 0, 0]
+                  })
+                ],
+                [
+                  pdf.text('Anticoagulant', { style: 'medCell' }),
+                  pdf.text('Warfarin', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionL.DC_Warfarin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionL.DC_Warfarin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionL.DC_Warfarin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionL.DC_Warfarin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionL.DC_WarfarinRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Alternative Therapy Preferred', this.data.sectionL.DC_WarfarinRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Negative Side Effect', this.data.sectionL.DC_WarfarinRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  })
+                ],
+                [
+                  pdf.text('Non-Vitamin K Dependent Oral Anticoagulant', {
+                    style: 'medCell',
+                    rowSpan: 4,
+                    margin: [0, 12, 0, 0]
+                  }),
+                  pdf.text('Apixaban', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionL.DC_Apixaban, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionL.DC_Apixaban, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionL.DC_Apixaban, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionL.DC_Apixaban, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionL.DC_ApixabanRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Alternative Therapy Preferred', this.data.sectionL.DC_ApixabanRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Negative Side Effect', this.data.sectionL.DC_ApixabanRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  })
+                ],
+                [
+                  '',
+                  pdf.text('Dabigatran', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionL.DC_Dabigatran, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionL.DC_Dabigatran, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionL.DC_Dabigatran, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionL.DC_Dabigatran, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionL.DC_DabigatranRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Alternative Therapy Preferred', this.data.sectionL.DC_DabigatranRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Negative Side Effect', this.data.sectionL.DC_DabigatranRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  })
+                ],
+                [
+                  '',
+                  pdf.text('Edoxaban', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionL.DC_Edoxaban, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionL.DC_Edoxaban, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionL.DC_Edoxaban, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionL.DC_Edoxaban, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionL.DC_EdoxabanRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Alternative Therapy Preferred', this.data.sectionL.DC_EdoxabanRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Negative Side Effect', this.data.sectionL.DC_EdoxabanRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  })
+                ],
+                [
+                  '',
+                  pdf.text('Rivaroxaban', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionL.DC_Rivaroxaban, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionL.DC_Rivaroxaban, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionL.DC_Rivaroxaban, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionL.DC_Rivaroxaban, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionL.DC_RivaroxabanRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Alternative Therapy Preferred', this.data.sectionL.DC_RivaroxabanRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Negative Side Effect', this.data.sectionL.DC_RivaroxabanRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  })
+                ]
+              ]
+            },
+            layout: {
+              fillColor(rowIndex, node, columnIndex) {
+                return rowIndex % 2 === 1 && columnIndex !== 0 ? '#eeeeee' : null;
+              },
+              vLineWidth(i, node) {
+                return [3, 4, 5, 7, 8].includes(i) ? 0.3 : 1;
+              },
+              vLineColor(i, node) {
+                return [3, 4, 5, 7, 8].includes(i) ? 'gray' : 'black';
+              }
+            },
+            margin: [0, 0, 0, 5]
+          },
+          pdf.block(
+            pdf.tab(),
+            pdf.arrowIf(),
+            ` Statin (Any) = 'Yes - Prescribed', `,
+            pdf.field('Dose', { annotation: '10207' })
+          ),
+          pdf.columns(
+            pdf.text('', { width: 26 }),
+            pdf.stack(
+              pdf.radio('Low Intensity Dose', this.data.sectionL.DC_StatinDose),
+              pdf.radio('Moderate Intensity Dose', this.data.sectionL.DC_StatinDose),
+              pdf.radio('High Intensity Dose', this.data.sectionL.DC_StatinDose)
+            )
+          ),
+          pdf.line(),
+          pdf.emptyLine(),
+          pdf.block(
+            pdf.field('Discharge Medication Reconciliation Completed', { annotation: '10220' }),
+            pdf.tab(),
+            pdf.radio('No', this.data.sectionL.DC_MedReconCompleted),
+            pdf.tab(),
+            pdf.radio('Yes', this.data.sectionL.DC_MedReconCompleted)
+          ),
+          pdf.block(
+            pdf.tab(),
+            pdf.arrowIf(),
+            ` Yes, `,
+            pdf.field('Reconciled Medications', { annotation: '10221' })
+          ),
+          pdf.columns(
+            pdf.text('', { width: 26 }),
+            pdf.stack(
+              pdf.check('Prescriptions: Cardiac', this.data.sectionL.DC_MedReconciled),
+              pdf.check('Prescriptions: Non-Cardiac', this.data.sectionL.DC_MedReconciled),
+              pdf.check('Over the Counter (OTC) Medications', this.data.sectionL.DC_MedReconciled),
+              pdf.check('Vitamins/Minerals', this.data.sectionL.DC_MedReconciled),
+              pdf.check('Herbal Supplements', this.data.sectionL.DC_MedReconciled)
+            )
+          )
+        )
+      ]
+    ];
+  }
+
+  private sectionM(): pdfMake.Content[][] {
+    return [
+      [
+        pdf.blockStyle(
+          // { style: 'section', pageBreak: 'before' },
+          { style: 'section' },
+          pdf.section('M. FOLLOW-UP'),
+          pdf.text(
+            ' (30 Days Post Index PCI Procedure: -7+14 days AND 1 Year Post Index PCI Procedure: +/-60 days)',
+            { bold: false }
+          )
+        )
+      ],
+      [
+        pdf.stackStyle(
+          { border: [true, true, true, false] },
+          pdf.emptyLine(),
+          pdf.block(
+            pdf.field('Assessment Date', { annotation: '11000' }),
+            pdf.date(this.data.sectionM.FollowUps[0].FU_AssessmentDate)
+          ),
+          pdf.field('Method(s) to Determine Status', { annotation: '11003' }),
+          pdf.columns(
+            pdf.text('', { width: 26 }),
+            pdf.stackStyle(
+              { width: 100 },
+              pdf.check('Office Visit', this.data.sectionM.FollowUps[0].FU_Method),
+              pdf.check('Phone Call', this.data.sectionM.FollowUps[0].FU_Method)
+            ),
+            pdf.stack(
+              pdf.check('Medical Records', this.data.sectionM.FollowUps[0].FU_Method),
+              pdf.check(
+                'Social Security Death Master File',
+                this.data.sectionM.FollowUps[0].FU_Method
+              )
+            ),
+            pdf.stack(
+              pdf.check('Letter from Medical Provider', this.data.sectionM.FollowUps[0].FU_Method),
+              pdf.block(
+                pdf.check('Hospitalized', this.data.sectionM.FollowUps[0].FU_Method),
+                pdf.tab(4),
+                pdf.check('Other', this.data.sectionM.FollowUps[0].FU_Method)
+              )
+            )
+          ),
+          pdf.line(),
+          pdf.emptyLine(),
+          pdf.block(
+            pdf.field('Follow-Up Status', { annotation: '11004' }),
+            pdf.tab(),
+            pdf.radio('Alive', this.data.sectionM.FollowUps[0].FU_Status),
+            pdf.tab(),
+            pdf.radio('Deceased', this.data.sectionM.FollowUps[0].FU_Status),
+            pdf.tab(),
+            pdf.radio('Lost to Follow-up', this.data.sectionM.FollowUps[0].FU_Status)
+          ),
+          pdf.block(
+            pdf.tab(),
+            pdf.arrowIf(),
+            ' Alive, ',
+            pdf.field('Chest Pain Symptom Assessment', { annotation: '11005' })
+          ),
+          pdf.block(
+            pdf.tab(4),
+            pdf.radio('Typical Angina', this.data.sectionM.FollowUps[0].FU_CPSxAssess),
+            pdf.tab(2),
+            pdf.radio('Atypical angina', this.data.sectionM.FollowUps[0].FU_CPSxAssess),
+            pdf.tab(2),
+            pdf.radio('Non-anginal Chest Pain', this.data.sectionM.FollowUps[0].FU_CPSxAssess),
+            pdf.tab(2),
+            pdf.radio('Asymptomatic', this.data.sectionM.FollowUps[0].FU_CPSxAssess)
+          )
+        )
+      ],
+      [
+        pdf.stackStyle(
+          { border: [true, false, true, false], fillColor: '#eeeeee' },
+          pdf.emptyLine(),
+          pdf.block(
+            pdf.tab(),
+            pdf.arrowIf(),
+            ' Deceased, ',
+            pdf.field('Date of Death', { annotation: '11006' }),
+            pdf.date(this.data.sectionM.FollowUps[0].FU_DeathDate)
+          ),
+          pdf.block(
+            pdf.tab(),
+            pdf.arrowIf(),
+            ' Deceased, ',
+            pdf.field('Primary Cause of Death', { annotation: '11007' })
+          ),
+          pdf.columns(
+            { text: '', width: 35 },
+            pdf.stackStyle(
+              { width: 200 },
+              pdf.radio(
+                'Acute myocardial infarction',
+                this.data.sectionM.FollowUps[0].FU_DeathCause
+              ),
+              pdf.radio('Sudden cardiac death', this.data.sectionM.FollowUps[0].FU_DeathCause),
+              pdf.radio('Heart failure', this.data.sectionM.FollowUps[0].FU_DeathCause),
+              pdf.radio('Cardiovascular procedure', this.data.sectionM.FollowUps[0].FU_DeathCause),
+              pdf.radio('Cardiovascular hemorrhage', this.data.sectionM.FollowUps[0].FU_DeathCause),
+              pdf.radio(
+                'Other cardiovascular reason',
+                this.data.sectionM.FollowUps[0].FU_DeathCause
+              ),
+              pdf.radio(
+                'Non-cardiovascular procedure or surgery',
+                this.data.sectionM.FollowUps[0].FU_DeathCause
+              )
+            ),
+            pdf.stackStyle(
+              { width: 120 },
+              pdf.radio('Pulmonary', this.data.sectionM.FollowUps[0].FU_DeathCause),
+              pdf.radio('Neurological', this.data.sectionM.FollowUps[0].FU_DeathCause),
+              pdf.radio('Hepatobiliary', this.data.sectionM.FollowUps[0].FU_DeathCause),
+              pdf.radio('Pancreatic', this.data.sectionM.FollowUps[0].FU_DeathCause),
+              pdf.radio('Renal', this.data.sectionM.FollowUps[0].FU_DeathCause),
+              pdf.radio('Gastrointestinal', this.data.sectionM.FollowUps[0].FU_DeathCause),
+              pdf.radio('Suicide', this.data.sectionM.FollowUps[0].FU_DeathCause)
+            ),
+            pdf.stack(
+              pdf.radio('Trauma', this.data.sectionM.FollowUps[0].FU_DeathCause),
+              pdf.radio('Stroke', this.data.sectionM.FollowUps[0].FU_DeathCause),
+              pdf.radio('Malignancy', this.data.sectionM.FollowUps[0].FU_DeathCause),
+              pdf.radio('Hemorrhage', this.data.sectionM.FollowUps[0].FU_DeathCause),
+              pdf.radio('Infection', this.data.sectionM.FollowUps[0].FU_DeathCause),
+              pdf.radio('Inflammatory/Immunologic', this.data.sectionM.FollowUps[0].FU_DeathCause),
+              pdf.radio(
+                'Other non-cardiovascular reason',
+                this.data.sectionM.FollowUps[0].FU_DeathCause
+              )
+            )
+          )
+        )
+      ],
+      [
+        pdf.stackStyle(
+          { border: [true, false, true, true] },
+          pdf.emptyLine(),
+          pdf.line(),
+          pdf.emptyLine(),
+          pdf.text('EVENT, INTERVENTIONS AND/OR SURGICAL PROCEDURES', { bold: true }),
+          pdf.text(
+            '(Any occurence between discharge (or previous follow-up) AND the current follow-up assessment)'
+          ),
+          pdf.emptyLine(),
+          {
+            table: {
+              widths: [165, 75, '*', 100],
+              body: [
+                [
+                  pdf.blockStyle(
+                    { style: 'tableHeaderWithAnno', margin: [0, 5, 0, 0] },
+                    pdf.text('Event(s)', { bold: true }),
+                    pdf.text('¹¹⁰¹¹')
+                  ),
+                  pdf.blockStyle(
+                    { style: 'tableHeaderWithAnno' },
+                    pdf.text('Event(s) Occured', { bold: true }),
+                    pdf.text('¹¹⁰¹²')
+                  ),
+                  pdf.blockStyle(
+                    { style: 'tableHeaderWithAnno' },
+                    pdf.arrowIf(),
+                    ' Yes, ',
+                    pdf.ln(),
+                    pdf.text('Device Event Occured In', { bold: true }),
+                    pdf.text('¹¹⁰¹³')
+                  ),
+                  pdf.blockStyle(
+                    { style: 'tableHeaderWithAnno' },
+                    pdf.arrowIf(),
+                    ' Yes,',
+                    pdf.ln(),
+                    pdf.text('Event Date/Time', { bold: true }),
+                    pdf.text('¹¹⁰¹⁴')
+                  )
+                ],
+                [
+                  pdf.text('Bleeding Event', { style: 'tableCell' }),
+                  pdf.blockStyle(
+                    { style: 'tableCell', alignment: 'center' },
+                    pdf.radio('No', this.data.sectionM.FollowUps[0].M_BleedingEvent),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionM.FollowUps[0].M_BleedingEvent)
+                  ),
+                  '',
+                  pdf.prop(pdf.date(this.data.sectionM.FollowUps[0].M_BleedingEventDT), {
+                    style: 'tableCell',
+                    alignment: 'center'
+                  })
+                ],
+                [
+                  pdf.text('CABG: Bypass of stented lesion', { style: 'tableCell' }),
+                  pdf.blockStyle(
+                    { style: 'tableCell', alignment: 'center' },
+                    pdf.radio('No', this.data.sectionM.FollowUps[0].M_CABGStent),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionM.FollowUps[0].M_CABGStent)
+                  ),
+                  '',
+                  pdf.prop(pdf.date(this.data.sectionM.FollowUps[0].M_CABGStentDT), {
+                    style: 'tableCell',
+                    alignment: 'center'
+                  })
+                ],
+                [
+                  pdf.text('CABG: Bypass of non-stented lesion', { style: 'tableCell' }),
+                  pdf.blockStyle(
+                    { style: 'tableCell', alignment: 'center' },
+                    pdf.radio('No', this.data.sectionM.FollowUps[0].M_CABGNonStent),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionM.FollowUps[0].M_CABGNonStent)
+                  ),
+                  '',
+                  pdf.prop(pdf.date(this.data.sectionM.FollowUps[0].M_CABGNonStentDT), {
+                    style: 'tableCell',
+                    alignment: 'center'
+                  })
+                ],
+                [
+                  pdf.text('Myocardial Infarction: NSTEMI', { style: 'tableCell' }),
+                  pdf.blockStyle(
+                    { style: 'tableCell', alignment: 'center' },
+                    pdf.radio('No', this.data.sectionM.FollowUps[0].M_NSTEMI),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionM.FollowUps[0].M_NSTEMI)
+                  ),
+                  '',
+                  pdf.prop(pdf.date(this.data.sectionM.FollowUps[0].M_NSTEMIDT), {
+                    style: 'tableCell',
+                    alignment: 'center'
+                  })
+                ],
+                [
+                  pdf.text('Myocardial Infarction: Q-wave', { style: 'tableCell' }),
+                  pdf.blockStyle(
+                    { style: 'tableCell', alignment: 'center' },
+                    pdf.radio('No', this.data.sectionM.FollowUps[0].M_Qwave),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionM.FollowUps[0].M_Qwave)
+                  ),
+                  '',
+                  pdf.prop(pdf.date(this.data.sectionM.FollowUps[0].M_QwaveDT), {
+                    style: 'tableCell',
+                    alignment: 'center'
+                  })
+                ],
+                [
+                  pdf.text('Myocardial Infarction: STEMI', { style: 'tableCell' }),
+                  pdf.blockStyle(
+                    { style: 'tableCell', alignment: 'center' },
+                    pdf.radio('No', this.data.sectionM.FollowUps[0].M_STEMI),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionM.FollowUps[0].M_STEMI)
+                  ),
+                  '',
+                  pdf.prop(pdf.date(this.data.sectionM.FollowUps[0].M_STEMIDT), {
+                    style: 'tableCell',
+                    alignment: 'center'
+                  })
+                ],
+                [
+                  pdf.text('Myocardial Infarction: Type Unknown', { style: 'tableCell' }),
+                  pdf.blockStyle(
+                    { style: 'tableCell', alignment: 'center' },
+                    pdf.radio('No', this.data.sectionM.FollowUps[0].M_MIUnknown),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionM.FollowUps[0].M_MIUnknown)
+                  ),
+                  '',
+                  pdf.prop(pdf.date(this.data.sectionM.FollowUps[0].M_MIUnknownDT), {
+                    style: 'tableCell',
+                    alignment: 'center'
+                  })
+                ],
+                [
+                  pdf.text('PCI of non-stented lesion', { style: 'tableCell' }),
+                  pdf.blockStyle(
+                    { style: 'tableCell', alignment: 'center' },
+                    pdf.radio('No', this.data.sectionM.FollowUps[0].M_PCINonStent),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionM.FollowUps[0].M_PCINonStent)
+                  ),
+                  '',
+                  pdf.prop(pdf.date(this.data.sectionM.FollowUps[0].M_PCINonStentDT), {
+                    style: 'tableCell',
+                    alignment: 'center'
+                  })
+                ],
+                [
+                  pdf.text('PCI of stented lesion', { style: 'tableCell' }),
+                  pdf.blockStyle(
+                    { style: 'tableCell', alignment: 'center' },
+                    pdf.radio('No', this.data.sectionM.FollowUps[0].M_PCIStent),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionM.FollowUps[0].M_PCIStent)
+                  ),
+                  '',
+                  pdf.prop(pdf.date(this.data.sectionM.FollowUps[0].M_PCIStentDT), {
+                    style: 'tableCell',
+                    alignment: 'center'
+                  })
+                ],
+                [
+                  pdf.text('Readmission: Non-PCI Related', { style: 'tableCell' }),
+                  pdf.blockStyle(
+                    { style: 'tableCell', alignment: 'center' },
+                    pdf.radio('No', this.data.sectionM.FollowUps[0].M_Readmission),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionM.FollowUps[0].M_Readmission)
+                  ),
+                  '',
+                  pdf.prop(pdf.date(this.data.sectionM.FollowUps[0].M_Readmission), {
+                    style: 'tableCell',
+                    alignment: 'center'
+                  })
+                ],
+                [
+                  pdf.text('Stroke – Hemorrhagic', { style: 'tableCell' }),
+                  pdf.blockStyle(
+                    { style: 'tableCell', alignment: 'center' },
+                    pdf.radio('No', this.data.sectionM.FollowUps[0].M_StrokeHemorrhage),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionM.FollowUps[0].M_StrokeHemorrhage)
+                  ),
+                  '',
+                  pdf.prop(pdf.date(this.data.sectionM.FollowUps[0].M_StrokeHemorrhageDT), {
+                    style: 'tableCell',
+                    alignment: 'center'
+                  })
+                ],
+                [
+                  pdf.text('Stroke – Ischemic', { style: 'tableCell' }),
+                  pdf.blockStyle(
+                    { style: 'tableCell', alignment: 'center' },
+                    pdf.radio('No', this.data.sectionM.FollowUps[0].M_StrokeIschemic),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionM.FollowUps[0].M_StrokeIschemic)
+                  ),
+                  '',
+                  pdf.prop(pdf.date(this.data.sectionM.FollowUps[0].M_StrokeIschemicDT), {
+                    style: 'tableCell',
+                    alignment: 'center'
+                  })
+                ],
+                [
+                  pdf.text('Stroke – Undetermined', { style: 'tableCell' }),
+                  pdf.blockStyle(
+                    { style: 'tableCell', alignment: 'center' },
+                    pdf.radio('No', this.data.sectionM.FollowUps[0].M_StrokeUndetermined),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionM.FollowUps[0].M_StrokeUndetermined)
+                  ),
+                  '',
+                  pdf.prop(pdf.date(this.data.sectionM.FollowUps[0].M_StrokeUndeterminedDT), {
+                    style: 'tableCell',
+                    alignment: 'center'
+                  })
+                ],
+                [
+                  pdf.text('Thrombosis in stented lesion', { style: 'tableCell' }),
+                  pdf.blockStyle(
+                    { style: 'tableCell', alignment: 'center' },
+                    pdf.radio('No', this.data.sectionM.FollowUps[0].M_ThrombosisStent),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionM.FollowUps[0].M_ThrombosisStent)
+                  ),
+                  '',
+                  pdf.prop(pdf.date(this.data.sectionM.FollowUps[0].M_ThrombosisStentDT), {
+                    style: 'tableCell',
+                    alignment: 'center'
+                  })
+                ],
+                [
+                  pdf.text('Thrombosis in non-stented lesion', { style: 'tableCell' }),
+                  pdf.blockStyle(
+                    { style: 'tableCell', alignment: 'center' },
+                    pdf.radio('No', this.data.sectionM.FollowUps[0].M_ThrombosisNonStent),
+                    pdf.tab(),
+                    pdf.radio('Yes', this.data.sectionM.FollowUps[0].M_ThrombosisNonStent)
+                  ),
+                  '',
+                  pdf.prop(pdf.date(this.data.sectionM.FollowUps[0].M_ThrombosisNonStentDT), {
+                    style: 'tableCell',
+                    alignment: 'center'
+                  })
+                ]
+              ]
+            },
+            margin: [0, 0, 0, 5]
+          },
+          pdf.line(),
+          pdf.emptyLine(),
+          pdf.field('Device-oriented Composite End Point'),
+          pdf.columns(
+            { text: '', width: 35 },
+            pdf.stackStyle(
+              { width: 150 },
+              pdf.radio('None', this.data.sectionL.M_DeviceCompositeEP),
+              pdf.radio('Cardiac death', this.data.sectionL.M_DeviceCompositeEP)
+            ),
+            pdf.stack(
+              pdf.radio(
+                'MI (not clearly attribute to a non-target vessel)',
+                this.data.sectionL.M_DeviceCompositeEP
+              ),
+              pdf.radio(
+                'TLR - Target Lesion Revascularization',
+                this.data.sectionL.M_DeviceCompositeEP
+              )
+            )
+          ),
+          pdf.field('Patient-oriented Composite End Point'),
+          pdf.columns(
+            { text: '', width: 35 },
+            pdf.stackStyle(
+              { width: 150 },
+              pdf.radio('None', this.data.sectionL.M_PatientCompositeEP),
+              pdf.radio('All-cause mortality', this.data.sectionL.M_PatientCompositeEP)
+            ),
+            pdf.stack(
+              pdf.radio(
+                'Any MI (included non-target vessel territory)',
+                this.data.sectionL.M_PatientCompositeEP
+              ),
+              pdf.radio(
+                'Any repeat revascularization (includes all target and non-target vessels)',
+                this.data.sectionL.M_PatientCompositeEP
+              )
+            )
+          ),
+          pdf.text('FOLLOW-UP MEDICATIONS', { bold: true, pageBreak: 'before' }),
+          {
+            table: {
+              widths: ['*', 90, 40, 40, 40, 40, 40, 40, 40],
+              headerRows: 2,
+              body: [
+                [
+                  pdf.blockStyle(
+                    { style: 'tableHeaderWithAnno', colSpan: 2, rowSpan: 2, margin: [0, 22, 0, 0] },
+                    pdf.text('Medication', { bold: true }),
+                    pdf.text('¹⁰²⁰⁰')
+                  ),
+                  '',
+                  pdf.blockStyle(
+                    { style: 'tableHeaderWithAnno', colSpan: 4, margin: [0, 5, 0, 0] },
+                    pdf.text('Prescribed', { bold: true }),
+                    pdf.text('¹⁰²⁰⁵')
+                  ),
+                  '',
+                  '',
+                  '',
+                  pdf.blockStyle(
+                    { style: 'tableHeaderWithAnno', colSpan: 3 },
+                    pdf.arrowIf(),
+                    ' No - Patient Reason, ',
+                    pdf.text('Rationale', { bold: true })
+                  ),
+                  '',
+                  ''
+                ],
+                [
+                  '',
+                  '',
+                  pdf.text('Yes - Prescribed', { style: 'medTableHeader', margin: [0, 5, 0, 0] }),
+                  pdf.text('No - No Reason', { style: 'medTableHeader', margin: [0, 5, 0, 0] }),
+                  pdf.text('No - Medical Reason', { style: 'medTableHeader' }),
+                  pdf.text('No - Patient Reason', { style: 'medTableHeader' }),
+                  pdf.text('Cost', { style: 'medTableHeader', margin: [0, 10, 0, 0] }),
+                  pdf.text('Alternative Therapy Preferred', { style: 'medTableHeader' }),
+                  pdf.text('Negative Side Effect', {
+                    style: 'medTableHeader',
+                    margin: [0, 5, 0, 0]
+                  })
+                ],
+                [
+                  pdf.text('Antiplatelet', { style: 'medCell', rowSpan: 2, margin: [0, 7, 0, 0] }),
+                  pdf.text('Aspirin', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_Aspirin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_Aspirin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_Aspirin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_Aspirin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_AspirinRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio(
+                    'Alternative Therapy Preferred',
+                    this.data.sectionM.FollowUps[0].FU_AspirinRN,
+                    {
+                      alias: '',
+                      style: 'radioInTable'
+                    }
+                  ),
+                  pdf.radio('Negative Side Effect', this.data.sectionM.FollowUps[0].FU_AspirinRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  })
+                ],
+                [
+                  '',
+                  pdf.text('Vorapaxar', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_Vorapaxar, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_Vorapaxar, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_Vorapaxar, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_Vorapaxar, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_VorapaxarRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio(
+                    'Alternative Therapy Preferred',
+                    this.data.sectionM.FollowUps[0].FU_VorapaxarRN,
+                    {
+                      alias: '',
+                      style: 'radioInTable'
+                    }
+                  ),
+                  pdf.radio(
+                    'Negative Side Effect',
+                    this.data.sectionM.FollowUps[0].FU_VorapaxarRN,
+                    {
+                      alias: '',
+                      style: 'radioInTable'
+                    }
+                  )
+                ],
+                [
+                  pdf.text('P2Y12 Inhibitors', {
+                    style: 'medCell',
+                    rowSpan: 4,
+                    margin: [0, 18, 0, 0]
+                  }),
+                  pdf.text('Clopidogrel', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_Clopidogrel, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_Clopidogrel, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_Clopidogrel, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_Clopidogrel, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_ClopidogrelRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio(
+                    'Alternative Therapy Preferred',
+                    this.data.sectionM.FollowUps[0].FU_ClopidogrelRN,
+                    {
+                      alias: '',
+                      style: 'radioInTable'
+                    }
+                  ),
+                  pdf.radio(
+                    'Negative Side Effect',
+                    this.data.sectionM.FollowUps[0].FU_ClopidogrelRN,
+                    {
+                      alias: '',
+                      style: 'radioInTable'
+                    }
+                  )
+                ],
+                [
+                  '',
+                  pdf.text('Prasugrel', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_Prasugrel, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_Prasugrel, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_Prasugrel, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_Prasugrel, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_PrasugrelRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio(
+                    'Alternative Therapy Preferred',
+                    this.data.sectionM.FollowUps[0].FU_PrasugrelRN,
+                    {
+                      alias: '',
+                      style: 'radioInTable'
+                    }
+                  ),
+                  pdf.radio(
+                    'Negative Side Effect',
+                    this.data.sectionM.FollowUps[0].FU_PrasugrelRN,
+                    {
+                      alias: '',
+                      style: 'radioInTable'
+                    }
+                  )
+                ],
+                [
+                  '',
+                  pdf.text('Ticagrelor', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_Ticagrelor, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_Ticagrelor, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_Ticagrelor, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_Ticagrelor, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_TicagrelorRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio(
+                    'Alternative Therapy Preferred',
+                    this.data.sectionM.FollowUps[0].FU_TicagrelorRN,
+                    {
+                      alias: '',
+                      style: 'radioInTable'
+                    }
+                  ),
+                  pdf.radio(
+                    'Negative Side Effect',
+                    this.data.sectionM.FollowUps[0].FU_TicagrelorRN,
+                    {
+                      alias: '',
+                      style: 'radioInTable'
+                    }
+                  )
+                ],
+                [
+                  '',
+                  pdf.text('Ticlopidine', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_Ticlopidine, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_Ticlopidine, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_Ticlopidine, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_Ticlopidine, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_TiclopidineRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio(
+                    'Alternative Therapy Preferred',
+                    this.data.sectionM.FollowUps[0].FU_TiclopidineRN,
+                    {
+                      alias: '',
+                      style: 'radioInTable'
+                    }
+                  ),
+                  pdf.radio(
+                    'Negative Side Effect',
+                    this.data.sectionM.FollowUps[0].FU_TiclopidineRN,
+                    {
+                      alias: '',
+                      style: 'radioInTable'
+                    }
+                  )
+                ],
+                [
+                  pdf.text('Statin', { style: 'medCell' }),
+                  pdf.text('Statin (Any)', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_Statin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_Statin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_Statin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_Statin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_StatinRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio(
+                    'Alternative Therapy Preferred',
+                    this.data.sectionM.FollowUps[0].FU_StatinRN,
+                    {
+                      alias: '',
+                      style: 'radioInTable'
+                    }
+                  ),
+                  pdf.radio('Negative Side Effect', this.data.sectionM.FollowUps[0].FU_StatinRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  })
+                ],
+                [
+                  pdf.text('Non-Statin', { style: 'medCell' }),
+                  pdf.text('Non-Statin (Any)', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_NonStatin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_NonStatin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_NonStatin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_NonStatin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_NonStatinRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio(
+                    'Alternative Therapy Preferred',
+                    this.data.sectionM.FollowUps[0].FU_NonStatinRN,
+                    {
+                      alias: '',
+                      style: 'radioInTable'
+                    }
+                  ),
+                  pdf.radio(
+                    'Negative Side Effect',
+                    this.data.sectionM.FollowUps[0].FU_NonStatinRN,
+                    {
+                      alias: '',
+                      style: 'radioInTable'
+                    }
+                  )
+                ],
+                [
+                  pdf.text('PCSK9 Inhibitors', {
+                    style: 'medCell',
+                    rowSpan: 2,
+                    margin: [0, 3, 0, 0]
+                  }),
+                  pdf.text('Alirocumab', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_Alirocumab, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_Alirocumab, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_Alirocumab, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_Alirocumab, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_AlirocumabRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio(
+                    'Alternative Therapy Preferred',
+                    this.data.sectionM.FollowUps[0].FU_AlirocumabRN,
+                    {
+                      alias: '',
+                      style: 'radioInTable'
+                    }
+                  ),
+                  pdf.radio(
+                    'Negative Side Effect',
+                    this.data.sectionM.FollowUps[0].FU_AlirocumabRN,
+                    {
+                      alias: '',
+                      style: 'radioInTable'
+                    }
+                  )
+                ],
+                [
+                  '',
+                  pdf.text('Evolocumab', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_Evolocumab, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_Evolocumab, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_Evolocumab, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_Evolocumab, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_EvolocumabRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio(
+                    'Alternative Therapy Preferred',
+                    this.data.sectionM.FollowUps[0].FU_EvolocumabRN,
+                    {
+                      alias: '',
+                      style: 'radioInTable'
+                    }
+                  ),
+                  pdf.radio(
+                    'Negative Side Effect',
+                    this.data.sectionM.FollowUps[0].FU_EvolocumabRN,
+                    {
+                      alias: '',
+                      style: 'radioInTable'
+                    }
+                  )
+                ],
+                [
+                  pdf.text('Beta Blockers', { style: 'medCell' }),
+                  pdf.text('Beta Blocker (Any)', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_BetaBlocker, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_BetaBlocker, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_BetaBlocker, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_BetaBlocker, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_BetaBlockerRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio(
+                    'Alternative Therapy Preferred',
+                    this.data.sectionM.FollowUps[0].FU_BetaBlockerRN,
+                    {
+                      alias: '',
+                      style: 'radioInTable'
+                    }
+                  ),
+                  pdf.radio(
+                    'Negative Side Effect',
+                    this.data.sectionM.FollowUps[0].FU_BetaBlockerRN,
+                    {
+                      alias: '',
+                      style: 'radioInTable'
+                    }
+                  )
+                ],
+                [
+                  pdf.text('ACE Inhibitors', { style: 'medCell' }),
+                  pdf.text('ACE Inhibitors (Any)', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_ACEI, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_ACEI, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_ACEI, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_ACEI, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_ACEIRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio(
+                    'Alternative Therapy Preferred',
+                    this.data.sectionM.FollowUps[0].FU_ACEIRN,
+                    {
+                      alias: '',
+                      style: 'radioInTable'
+                    }
+                  ),
+                  pdf.radio('Negative Side Effect', this.data.sectionM.FollowUps[0].FU_ACEIRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  })
+                ],
+                [
+                  pdf.text('ARB (Angiotension Receptors Blockers)', { style: 'medCell' }),
+                  pdf.text('ARB (Any)', { style: 'tableCell', margin: [0, 15, 0, 0] }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_ARB, {
+                    alias: '',
+                    style: 'radioInTable',
+                    margin: [0, 15, 0, 0]
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_ARB, {
+                    alias: '',
+                    style: 'radioInTable',
+                    margin: [0, 15, 0, 0]
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_ARB, {
+                    alias: '',
+                    style: 'radioInTable',
+                    margin: [0, 15, 0, 0]
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_ARB, {
+                    alias: '',
+                    style: 'radioInTable',
+                    margin: [0, 15, 0, 0]
+                  }),
+                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_ARBRN, {
+                    alias: '',
+                    style: 'radioInTable',
+                    margin: [0, 15, 0, 0]
+                  }),
+                  pdf.radio(
+                    'Alternative Therapy Preferred',
+                    this.data.sectionM.FollowUps[0].FU_ARBRN,
+                    {
+                      alias: '',
+                      style: 'radioInTable',
+                      margin: [0, 15, 0, 0]
+                    }
+                  ),
+                  pdf.radio('Negative Side Effect', this.data.sectionM.FollowUps[0].FU_ARBRN, {
+                    alias: '',
+                    style: 'radioInTable',
+                    margin: [0, 15, 0, 0]
+                  })
+                ],
+                [
+                  pdf.text('Anticoagulant', { style: 'medCell' }),
+                  pdf.text('Warfarin', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_Warfarin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_Warfarin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_Warfarin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_Warfarin, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_WarfarinRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio(
+                    'Alternative Therapy Preferred',
+                    this.data.sectionM.FollowUps[0].FU_WarfarinRN,
+                    {
+                      alias: '',
+                      style: 'radioInTable'
+                    }
+                  ),
+                  pdf.radio('Negative Side Effect', this.data.sectionM.FollowUps[0].FU_WarfarinRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  })
+                ],
+                [
+                  pdf.text('Non-Vitamin K Dependent Oral Anticoagulant', {
+                    style: 'medCell',
+                    rowSpan: 4,
+                    margin: [0, 12, 0, 0]
+                  }),
+                  pdf.text('Apixaban', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_Apixaban, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_Apixaban, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_Apixaban, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_Apixaban, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_ApixabanRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio(
+                    'Alternative Therapy Preferred',
+                    this.data.sectionM.FollowUps[0].FU_ApixabanRN,
+                    {
+                      alias: '',
+                      style: 'radioInTable'
+                    }
+                  ),
+                  pdf.radio('Negative Side Effect', this.data.sectionM.FollowUps[0].FU_ApixabanRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  })
+                ],
+                [
+                  '',
+                  pdf.text('Dabigatran', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_Dabigatran, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_Dabigatran, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_Dabigatran, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_Dabigatran, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_DabigatranRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio(
+                    'Alternative Therapy Preferred',
+                    this.data.sectionM.FollowUps[0].FU_DabigatranRN,
+                    {
+                      alias: '',
+                      style: 'radioInTable'
+                    }
+                  ),
+                  pdf.radio(
+                    'Negative Side Effect',
+                    this.data.sectionM.FollowUps[0].FU_DabigatranRN,
+                    {
+                      alias: '',
+                      style: 'radioInTable'
+                    }
+                  )
+                ],
+                [
+                  '',
+                  pdf.text('Edoxaban', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_Edoxaban, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_Edoxaban, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_Edoxaban, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_Edoxaban, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_EdoxabanRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio(
+                    'Alternative Therapy Preferred',
+                    this.data.sectionM.FollowUps[0].FU_EdoxabanRN,
+                    {
+                      alias: '',
+                      style: 'radioInTable'
+                    }
+                  ),
+                  pdf.radio('Negative Side Effect', this.data.sectionM.FollowUps[0].FU_EdoxabanRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  })
+                ],
+                [
+                  '',
+                  pdf.text('Rivaroxaban', { style: 'tableCell' }),
+                  pdf.radio('Yes - Prescribed', this.data.sectionM.FollowUps[0].FU_Rivaroxaban, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - No Reason', this.data.sectionM.FollowUps[0].FU_Rivaroxaban, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Medical Reason', this.data.sectionM.FollowUps[0].FU_Rivaroxaban, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('No - Patient Reason', this.data.sectionM.FollowUps[0].FU_Rivaroxaban, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio('Cost', this.data.sectionM.FollowUps[0].FU_RivaroxabanRN, {
+                    alias: '',
+                    style: 'radioInTable'
+                  }),
+                  pdf.radio(
+                    'Alternative Therapy Preferred',
+                    this.data.sectionM.FollowUps[0].FU_RivaroxabanRN,
+                    {
+                      alias: '',
+                      style: 'radioInTable'
+                    }
+                  ),
+                  pdf.radio(
+                    'Negative Side Effect',
+                    this.data.sectionM.FollowUps[0].FU_RivaroxabanRN,
+                    {
+                      alias: '',
+                      style: 'radioInTable'
+                    }
+                  )
+                ]
+              ]
+            },
+            layout: {
+              fillColor(rowIndex, node, columnIndex) {
+                return rowIndex % 2 === 1 && columnIndex !== 0 ? '#eeeeee' : null;
+              },
+              vLineWidth(i, node) {
+                return [3, 4, 5, 7, 8].includes(i) ? 0.3 : 1;
+              },
+              vLineColor(i, node) {
+                return [3, 4, 5, 7, 8].includes(i) ? 'gray' : 'black';
+              }
+            },
+            margin: [0, 0, 0, 5]
+          },
+          pdf.block(
+            pdf.tab(),
+            pdf.arrowIf(),
+            ` Statin (Any) = 'Yes - Prescribed', `,
+            pdf.field('Dose', { annotation: '10207' })
+          ),
+          pdf.columns(
+            pdf.text('', { width: 26 }),
+            pdf.stack(
+              pdf.radio('Low Intensity Dose', this.data.sectionM.FollowUps[0].FU_StatinDose),
+              pdf.radio('Moderate Intensity Dose', this.data.sectionM.FollowUps[0].FU_StatinDose),
+              pdf.radio('High Intensity Dose', this.data.sectionM.FollowUps[0].FU_StatinDose)
+            )
+          )
+        )
+      ]
     ];
   }
 }

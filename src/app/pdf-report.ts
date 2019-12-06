@@ -50,11 +50,35 @@ export const styles: pdfMake.Style = {
   },
   tableHeader: {
     bold: true,
-    lineHeight: 1,
+    lineHeight: 1.0,
     alignment: 'center'
   },
+  tableHeaderWithAnno: {
+    alignment: 'center',
+    fillColor: '#dddddd',
+    lineHeight: 1.0
+  },
   tableCell: {
-    lineHeight: 1
+    lineHeight: 1.0
+  },
+  deviceCell: {
+    lineHeight: 1.4,
+    margin: [0, 5, 0, 0]
+  },
+  medCell: {
+    bold: true,
+    lineHeight: 1.0
+  },
+  medTableHeader: {
+    fontSize: 9,
+    alignment: 'center',
+    fillColor: '#dddddd',
+    lineHeight: 1.0
+  },
+  radioInTable: {
+    alias: '',
+    lineHeight: 1.0,
+    alignment: 'center'
   }
 };
 
@@ -284,16 +308,18 @@ export function input(label: string, styl?: pdfMake.Style): pdfMake.Content {
 }
 
 export function inputArray(label: string[], styl?: pdfMake.Style): pdfMake.Content {
-  let output = '';
+  let output = '__________,__________,__________,__________,__________';
 
-  label.forEach(s => {
-    output += s + ', ';
-  });
-  output = output.substring(0, output.length - 2);
+  if (label) {
+    output = '';
+    label.forEach(s => {
+      output += s + ', ';
+    });
+    output = output.substring(0, output.length - 2);
+  }
 
   return input(output, styl);
 }
-
 
 export function inputT(label: string, styl?: pdfMake.Style): pdfMake.Content {
   const output = input(label, styl);
@@ -315,47 +341,68 @@ export function inputThai(label: string, styl?: pdfMake.Style): pdfMake.Content 
   return output;
 }
 
+function choice(symbol: string, label: string, styl?: pdfMake.Style): pdfMake.Content {
+  const output = { text: [{ text: symbol, style: 'symbol' }] };
+
+  if (styl && (styl.alias || styl.alias === '')) {
+    output.text.push({ text: styl.alias, style: 'choice' });
+  } else {
+    output.text.push({ text: ` ${label}`, style: 'choice' });
+  }
+
+  if (styl && styl.annotation) {
+    output.text.push(superscript(styl.annotation));
+  }
+
+  if (styl) {
+    prop(output, styl);
+  }
+  return output;
+}
+
 export function radio(label: string, value: string, styl?: pdfMake.Style): pdfMake.Content {
-  const output = {
-    text: [
-      { text: label === value ? '' : '', style: 'symbol' },
-      { text: ` ${label}`, style: 'choice' }
-    ]
-  };
-
-  if (styl) {
-    prop(output, styl);
-
-    if (styl.annotation) {
-      output.text.push(superscript(styl.annotation));
-    }
-  }
-  return output;
+  return choice(label === value ? '' : '', label, styl);
 }
 
-export function radioT(label: string, value: string, styl?: pdfMake.Style): pdfMake.Content {
-  const output = radio(label, value, styl);
-  output.style = 'tableCell';
-  return output;
+export function check(label: string, value: string, styl?: pdfMake.Style): pdfMake.Content {
+  return choice(value && value.includes(label) ? '' : '', label, styl);
 }
 
-export function check(label: string, value: any[], styl?: pdfMake.Style): pdfMake.Content {
-  const output = {
-    text: [
-      { text: value && value.includes(label) ? '' : '', style: 'symbol' },
-      { text: ` ${label}`, style: 'choice' }
-    ]
-  };
+// export function radio(label: string, value: string, styl?: pdfMake.Style): pdfMake.Content {
+//   const output = {
+//     text: [
+//       { text: label === value ? '' : '', style: 'symbol' },
+//       { text: ` ${label}`, style: 'choice' }
+//     ]
+//   };
 
-  if (styl) {
-    prop(output, styl);
+//   if (styl) {
+//     prop(output, styl);
 
-    if (styl.annotation) {
-      output.text.push(superscript(styl.annotation));
-    }
-  }
-  return output;
-}
+//     if (styl.annotation) {
+//       output.text.push(superscript(styl.annotation));
+//     }
+//   }
+//   return output;
+// }
+
+// export function check(label: string, value: any[], styl?: pdfMake.Style): pdfMake.Content {
+//   const output = {
+//     text: [
+//       { text: value && value.includes(label) ? '' : '', style: 'symbol' },
+//       { text: ` ${label}`, style: 'choice' }
+//     ]
+//   };
+
+//   if (styl) {
+//     prop(output, styl);
+
+//     if (styl.annotation) {
+//       output.text.push(superscript(styl.annotation));
+//     }
+//   }
+//   return output;
+// }
 
 export function date(label: string, type = 'date'): pdfMake.Content {
   const d = moment(label);
@@ -367,5 +414,9 @@ export function date(label: string, type = 'date'): pdfMake.Content {
     output = type === 'date' ? '___ /___ /______' : '___ /___ /______,___:___';
   }
   return { text: output, bold: true, italics: true };
+}
+
+export function text(label: string, styl?: pdfMake.Style): pdfMake.Content {
+  return { text: label, ...styl };
 }
 //#endregion
