@@ -76,6 +76,8 @@ export class AppComponent {
         { text: [{ text: '', style: 'symbol' }, ' fa-circle'] },
         { text: [{ text: '', style: 'symbol', bold: true }, ' fa-arrow-right'] },
         { image: await pdfReport.imageToBase64('assets/img/googlelogo.png') },
+        { image: await pdfReport.imageToBase64('assets/img/bangkok-hospital-resize.png') },
+        { image: await pdfReport.imageToBase64('assets/img/bangkok-hospital.png'), height: 100 },
         {
           text: 'This is a header, using header style',
           style: 'header'
@@ -141,11 +143,12 @@ export class AppComponent {
     pdfMake.createPdf(docDefinition).open();
   }
 
-  exportPDF2() {
+  async exportPDF2() {
     const data = require('./data.json');
     console.log(data[0]);
 
     const report = new CathPciReport(data[0]);
-    pdfMake.createPdf(report.docDefinition).open();
+    pdfMake.createPdf(await report.getDocDefinition()).open();
+    // pdfMake.createPdf(await report.getDoc()).open();
   }
 }

@@ -61,6 +61,10 @@ export const styles: pdfMake.Style = {
   tableCell: {
     lineHeight: 1.0
   },
+  tableCellCenter: {
+    lineHeight: 1.0,
+    alignment: 'center',
+  },
   deviceCell: {
     lineHeight: 1.4,
     margin: [0, 5, 0, 0]
