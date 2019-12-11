@@ -38,13 +38,21 @@ export class CathPciReport {
         //   }
         // };
         return pdf.columns(
-          pdf.text('BDMS CathPCI Registry v1.0', { alignment: 'left', margin: [40, 0, 0, 0] }),
-          pdf.text(currentPage.toString() + ' of ' + pageCount, { alignment: 'center' }),
-          pdf.text('Printed ' + new Date().toLocaleString(), {
-            alignment: 'right',
-            margin: [0, 0, 35, 0],
-            italics: true
-          })
+          pdf.blockStyle(
+            { width: 250, margin: [40, 0, 0, 0] },
+            pdf.text('BDMS CathPCI Registry v1.0', { alignment: 'left' }),
+            pdf.text(' - last update 11/12/2019', { italics: true, fontSize: 9 })
+          ),
+          pdf.text(currentPage.toString() + ' of ' + pageCount, {
+            width: '*',
+            alignment: 'center'
+          }),
+          // pdf.text('Printed ' + new Date().toLocaleString(), {
+          //   alignment: 'right',
+          //   margin: [0, 0, 35, 0],
+          //   italics: true
+          // })
+          pdf.text('', { width: 250 })
         );
       },
       content: await this.getContent(),
@@ -114,9 +122,31 @@ export class CathPciReport {
     ];
   }
 
+  private waterMark(): pdfMake.Content {
+    return {
+      text: this.data && !this.data.sectionL.SubmittedDischarge ? 'UNSUBMIT' : null,
+      bold: false,
+      fontSize: 72,
+      angle: 315,
+      color: '#cccccc',
+      absolutePosition: { x: 140, y: 400 }
+    };
+  }
+
+  private waterMarkFU(data: any): pdfMake.Content {
+    return {
+      text: data && !data.SubmittedFollowUp ? 'UNSUBMIT' : null,
+      bold: false,
+      fontSize: 72,
+      angle: 315,
+      color: '#cccccc',
+      absolutePosition: { x: 140, y: 400 }
+    };
+  }
+
   private sectionA(): pdfMake.Content[][] {
     return [
-      [pdf.section('A. DEMOGRAPHICS')],
+      [pdf.stackStyle({ style: 'section' }, pdf.section('A. DEMOGRAPHICS'), this.waterMark())],
       [
         pdf.stack(
           pdf.emptyLine(),
@@ -645,14 +675,13 @@ export class CathPciReport {
   private sectionD(): pdfMake.Content[][] {
     return [
       [
-        pdf.blockStyle(
+        pdf.stackStyle(
           { style: 'section', pageBreak: 'before' },
-          // { style: 'section' },
-          pdf.section('D. PRE-PROCEDURE INFORMATION'),
-          {
+          pdf.block(pdf.section('D. PRE-PROCEDURE INFORMATION'), {
             text: ' (Complete for Each Cath Lab Visit)',
             bold: false
-          }
+          }),
+          this.waterMark()
         )
       ],
       [
@@ -1220,10 +1249,10 @@ export class CathPciReport {
   private sectionE(): pdfMake.Content[][] {
     return [
       [
-        pdf.blockStyle(
+        pdf.stackStyle(
           { style: 'section', pageBreak: 'before' },
-          // { style: 'section' },
-          pdf.section('E. PROCEDURE INFORMATION')
+          pdf.section('E. PROCEDURE INFORMATION'),
+          this.waterMark()
         )
       ],
       [
@@ -1727,14 +1756,13 @@ export class CathPciReport {
   private sectionG(): pdfMake.Content[][] {
     return [
       [
-        pdf.blockStyle(
+        pdf.stackStyle(
           { style: 'section', pageBreak: 'before' },
-          // { style: 'section' },
-          pdf.section('G. CATH LAB VISIT'),
-          {
+          pdf.block(pdf.section('G. CATH LAB VISIT'), {
             text: ' (Complete for Each Cath Lab Visit)',
             bold: false
-          }
+          }),
+          this.waterMark()
         )
       ],
       [
@@ -2381,10 +2409,10 @@ export class CathPciReport {
   private sectionH(): pdfMake.Content[][] {
     return [
       [
-        pdf.blockStyle(
+        pdf.stackStyle(
           { style: 'section', pageBreak: 'before' },
-          // { style: 'section' },
-          pdf.section('H. CORONARY ANATOMY')
+          pdf.section('H. CORONARY ANATOMY'),
+          this.waterMark()
         )
       ],
       [
@@ -2413,7 +2441,7 @@ export class CathPciReport {
             pdf.field('Specify Segment(s)'),
             pdf.text('(See in Appendix)', {
               italics: true,
-              fontSize: 8,
+              fontSize: 8
             })
           ),
           {
@@ -2450,7 +2478,7 @@ export class CathPciReport {
             pdf.field('Specify Segment(s)'),
             pdf.text('(See in Appendix)', {
               italics: true,
-              fontSize: 8,
+              fontSize: 8
             })
           ),
           {
@@ -2645,14 +2673,13 @@ export class CathPciReport {
   private sectionI(): pdfMake.Content[][] {
     return [
       [
-        pdf.blockStyle(
+        pdf.stackStyle(
           { style: 'section', pageBreak: 'before' },
-          // { style: 'section' },
-          pdf.section('I. PCI PROCEDURE'),
-          {
+          pdf.block(pdf.section('I. PCI PROCEDURE'), {
             text: ' (Complete for Each Cath Lab Visit in which a PCI was Attempted or Performed)',
             bold: false
-          }
+          }),
+          this.waterMark()
         )
       ],
       [
@@ -3126,9 +3153,12 @@ export class CathPciReport {
         )
       ],
       [
-        pdf.text(
-          'PCI PROCEDURE MEDICATONS (Administered within 24 hours prior to and during the PCI procedure)',
-          { style: 'subSection', pageBreak: 'before' }
+        pdf.stackStyle(
+          { style: 'subSection', pageBreak: 'before' },
+          pdf.text(
+            'PCI PROCEDURE MEDICATONS (Administered within 24 hours prior to and during the PCI procedure)'
+          ),
+          this.waterMark()
         )
       ],
       [
@@ -3308,19 +3338,19 @@ export class CathPciReport {
   private sectionJ(): pdfMake.Content[][] {
     return [
       [
-        pdf.blockStyle(
+        pdf.stackStyle(
           { style: 'section', pageBreak: 'before' },
-          // { style: 'section' },
-          pdf.section('J. LESIONS AND DEVICES'),
-          {
+          pdf.block(pdf.section('J. LESIONS AND DEVICES'), {
             text: ' (Complete for Each PCI Attempted or Performed)',
             bold: false
-          }
+          }),
+          this.waterMark()
         )
       ],
       [
         pdf.stack(
           ...this.getPci(),
+          this.waterMark(),
           {
             margin: [0, 3, 0, 5],
             table: {
@@ -3380,15 +3410,16 @@ export class CathPciReport {
         pci = this.data ? this.data.sectionJ.PciLesions[index] : null;
       }
       output.push(this.pciLesion(pci));
-      output.push({ text: '', pageBreak: 'after' });
     }
     return output;
   }
 
   private pciLesion(data: any) {
     return [
+      this.waterMark(),
       pdf.emptyLine(),
       {
+        pageBreak: 'after',
         margin: [0, 0, 0, 3],
         table: {
           widths: '*',
@@ -3569,7 +3600,7 @@ export class CathPciReport {
                   pdf.field('Bifurcation Classification'),
                   pdf.text('(See in Appendix)', {
                     italics: true,
-                    fontSize: 8,
+                    fontSize: 8
                   })
                 ),
                 pdf.block(
@@ -4215,15 +4246,10 @@ export class CathPciReport {
   private sectionK(): pdfMake.Content[][] {
     return [
       [
-        pdf.blockStyle(
-          // { style: 'section', pageBreak: 'before' },
-          { style: 'section' },
-          pdf.section('K. INTRA AND POST-PROCEDURE EVENTS'),
-          {
-            text: ' (Complete for Each Cath Lab Visit)',
-            bold: false
-          }
-        )
+        pdf.blockStyle({ style: 'section' }, pdf.section('K. INTRA AND POST-PROCEDURE EVENTS'), {
+          text: ' (Complete for Each Cath Lab Visit)',
+          bold: false
+        })
       ],
       [
         pdf.stack(
@@ -4562,7 +4588,13 @@ export class CathPciReport {
 
   private sectionL(): pdfMake.Content[][] {
     return [
-      [pdf.blockStyle({ style: 'section', pageBreak: 'before' }, pdf.section('L. DISCHARGE'))],
+      [
+        pdf.stackStyle(
+          { style: 'section', pageBreak: 'before' },
+          pdf.section('L. DISCHARGE'),
+          this.waterMark()
+        )
+      ],
       [
         pdf.stackStyle(
           { border: [true, true, true, false] },
@@ -4941,7 +4973,8 @@ export class CathPciReport {
               ' (Prescrived at Discharge - Complete for Each Episode of Care in which a PCI was Attemped or Performed)',
               { fontSize: 9 }
             )
-          )
+          ),
+          this.waterMark()
         )
       ],
       [
@@ -6026,10 +6059,11 @@ export class CathPciReport {
   private followUp(data: any, fistPage: boolean) {
     return [
       [
-        pdf.text('FOLLOW UP PERIOD: __________', {
-          style: 'subSection',
-          pageBreak: fistPage ? null : 'before'
-        })
+        pdf.stackStyle(
+          { style: 'subSection', pageBreak: fistPage ? null : 'before' },
+          pdf.text('FOLLOW UP PERIOD: __________'),
+          this.waterMarkFU(data)
+        )
       ],
       [
         pdf.stackStyle(
@@ -6446,6 +6480,7 @@ export class CathPciReport {
             )
           ),
           pdf.text('FOLLOW-UP MEDICATIONS', { bold: true, pageBreak: 'before' }),
+          this.waterMarkFU(data),
           {
             table: {
               widths: ['*', 90, 40, 40, 40, 40, 40, 40, 40],

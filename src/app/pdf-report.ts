@@ -63,7 +63,7 @@ export const styles: pdfMake.Style = {
   },
   tableCellCenter: {
     lineHeight: 1.0,
-    alignment: 'center',
+    alignment: 'center'
   },
   deviceCell: {
     lineHeight: 1.4,
@@ -298,6 +298,27 @@ export function fieldT(label: string, styl?: pdfMake.Style): pdfMake.Content {
   return output;
 }
 
+function thaiLength(str: string): number {
+  const upLow = 'ิีึื่้๊๋็ํุู์ฺ';
+  let length = 0;
+
+  // for (const c of str) {
+  //   if (!upLow.includes(c)) {
+  //     length++;
+  //   }
+  // }
+
+  // tslint:disable-next-line: prefer-for-of
+  for (let index = 0; index < str.length; index++) {
+    const c = str[index];
+    if (!upLow.includes(c)) {
+      length++;
+    }
+  }
+  console.log(length, str);
+  return length;
+}
+
 export function input(label: string, styl?: pdfMake.Style): pdfMake.Content {
   let blank = '_____________';
   if (styl && styl.blank) {
@@ -323,12 +344,6 @@ export function inputArray(label: string[], styl?: pdfMake.Style): pdfMake.Conte
   }
 
   return input(output, styl);
-}
-
-export function inputT(label: string, styl?: pdfMake.Style): pdfMake.Content {
-  const output = input(label, styl);
-  output.style = 'tableCell';
-  return output;
 }
 
 export function inputThai(label: string, styl?: pdfMake.Style): pdfMake.Content {

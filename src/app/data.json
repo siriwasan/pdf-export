@@ -489,7 +489,7 @@
       "HospInterventionType": null,
       "L_DeviceCompositeEP": "None",
       "L_PatientCompositeEP": "None",
-      "SubmittedDischarge": true
+      "SubmittedDischarge": false
     },
     "sectionM": {
       "FollowUps": [

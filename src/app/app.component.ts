@@ -147,8 +147,8 @@ export class AppComponent {
     const data = require('./data.json');
     console.log(data[0]);
 
-    // const report = new CathPciReport(data[0]);
-    const report = new CathPciReport(null);
+    const report = new CathPciReport(data[0]);
+    // const report = new CathPciReport(null);
     pdfMake.createPdf(await report.getDocDefinition()).open();
     // pdfMake.createPdf(await report.getDoc()).open();
   }
